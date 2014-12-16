@@ -1,0 +1,9 @@
+beginString,bodyLength,msgType,senderCompID,targetCompID,msgSeqNum,sendingTime,lastMsgSeqNumProcessed,text,possDupFlag,tradSesReqID,tradingSessionID,tradSesMode,tradSesStatus,tradSesStartTime,checkSum
+FIX.4.4,,h,HNX,,,,,,,LIS_BRD_01,LIS_CON_NML,1,90,00010101-00:00:00,
+FIX.4.4,,h,HNX,,,,,,,LIS_BRD_01,LIS_CON_NML,1,1,00010101-00:00:00,
+FIX.4.4,,h,HNX,,,,,,,LIS_BRD_01,LIS_CON_NML,1,2,00010101-00:00:00,
+FIX.4.4,,h,HNX,,,,,,,LIS_BRD_01,LIS_CON_NML,1,1,00010101-00:00:00,
+FIX.4.4,,h,HNX,,,,,,,LIS_BRD_01,LIS_AUC_C_NML,1,1,00010101-00:00:00,
+FIX.4.4,,h,HNX,,,,,,,LIS_BRD_01,LIS_AUC_C_NML_LOC,1,1,00010101-00:00:00,
+FIX.4.4,,h,HNX,,,,,,,LIS_BRD_01,LIS_PTH_P_NML,1,1,00010101-00:00:00,
+FIX.4.4,,h,HNX,,,,,,,LIS_BRD_01,NONE,1,97,00010101-00:00:00,

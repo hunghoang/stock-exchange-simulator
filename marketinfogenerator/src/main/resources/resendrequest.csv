@@ -1,0 +1,2 @@
+beginString,bodyLength,msgType,senderCompID,targetCompID,msgSeqNum,sendingTime,lastMsgSeqNumProcessed,beginSeqNo,endSeqNo,checkSum
+FIX.4.4,,2,,,,,,,,

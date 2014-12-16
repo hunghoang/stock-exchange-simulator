@@ -1,0 +1,2 @@
+beginString,bodyLength,msgType,senderCompID,targetCompID,msgSeqNum,sendingTime,lastMsgSeqNumProcessed,encryptMethod,heartBtInt,userName,password,checkSum
+FIX.4.4,,A,,,,,,0,30,,,
