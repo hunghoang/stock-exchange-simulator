@@ -38,7 +38,9 @@ public class OrderReplaceRequestProcessorTest {
 		
 		List<ExecutionReport> reports = replaceOrderProcessor.process(request);
 		ExecutionReport report = reports.get(0);
+		
 		verifyReport(report, order.getOrderQty(), 0, request.getPrice());
+		verifyClOrdId(request, report);
 		
 		String newOrderId = report.getOrderID();
 		NewOrderSingle newOrder = storage.get(newOrderId);
@@ -58,6 +60,7 @@ public class OrderReplaceRequestProcessorTest {
 		List<ExecutionReport> reports = replaceOrderProcessor.process(request);
 		ExecutionReport report = reports.get(0);
 		verifyReport(report, order.getOrderQty(), 0, request.getPrice());
+		verifyClOrdId(request, report);
 		
 		String newOrderId = report.getOrderID();
 		NewOrderSingle newOrder = storage.get(newOrderId);
@@ -76,13 +79,27 @@ public class OrderReplaceRequestProcessorTest {
 		request.setCashOrderQty(12000);
 		List<ExecutionReport> reports = replaceOrderProcessor.process(request);
 
+		
 		ExecutionReport report = reports.get(0);
 		verifyReport(report, 12000, 4000, order.getPrice());
+		verifyClOrdId(request, report);
 		String newOrderId = report.getOrderID();
 		NewOrderSingle newOrder = storage.get(newOrderId);
 		Assert.assertNotEquals("newOrder is not create when replace order with new one having decreased quantity and price", order, newOrder);
 		Assert.assertEquals(12000, newOrder.getOrderQty());
 		Assert.assertEquals(order.getPrice(), newOrder.getPrice(), 0.1);
+	}
+	
+	@Test
+	public void testGenerateReplaceOrderId() {
+		String orderId = replaceOrderProcessor.generateReplacedOrderID("orderid012");
+		Assert.assertEquals("orderid013", orderId);
+		orderId = replaceOrderProcessor.generateReplacedOrderID("orderid013");
+		Assert.assertEquals("orderid014", orderId);
+		orderId = replaceOrderProcessor.generateReplacedOrderID("orderid019");
+		Assert.assertEquals("orderid020", orderId);
+		orderId = replaceOrderProcessor.generateReplacedOrderID("orderid999");
+		Assert.assertEquals("orderid1000", orderId);
 	}
 	
 	@Test
@@ -97,8 +114,7 @@ public class OrderReplaceRequestProcessorTest {
 		List<ExecutionReport> reports = replaceOrderProcessor.process(request);
 		ExecutionReport report = reports.get(0);
 		verifyReport(report, 3000, -3000, order.getPrice());
-		
-		
+		verifyClOrdId(request, report);
 		String newOrderId = report.getOrderID();
 		NewOrderSingle newOrder = storage.get(newOrderId);
 		Assert.assertEquals(order, newOrder);
@@ -118,7 +134,8 @@ public class OrderReplaceRequestProcessorTest {
 		List<ExecutionReport> reports = replaceOrderProcessor.process(request);
 		ExecutionReport report = reports.get(0);
 		verifyReport(report, 12000, 4000, request.getPrice());
-		
+		verifyClOrdId(request, report);
+				
 		String newOrderId = report.getOrderID();
 		NewOrderSingle newOrder = storage.get(newOrderId);
 		Assert.assertNotEquals("newOrder is not created when replace order with new one having increase quantity and price", order, newOrder);
@@ -140,6 +157,7 @@ public class OrderReplaceRequestProcessorTest {
 		
 		ExecutionReport report = reports.get(0);
 		verifyReport(report, request.getCashOrderQty(), -1500, request.getPrice());
+		verifyClOrdId(request, report);
 		
 		String newOrderId = report.getOrderID();
 		NewOrderSingle newOrder = storage.get(newOrderId);
@@ -162,6 +180,7 @@ public class OrderReplaceRequestProcessorTest {
 		
 		ExecutionReport report = reports.get(0);
 		verifyReport(report, request.getCashOrderQty(), 2500, request.getPrice());
+		verifyClOrdId(request, report);
 		
 		String newOrderId = report.getOrderID();
 		NewOrderSingle newOrder = storage.get(newOrderId);
@@ -184,6 +203,7 @@ public class OrderReplaceRequestProcessorTest {
 		
 		ExecutionReport report = reports.get(0);
 		verifyReport(report, request.getCashOrderQty(), -2500, request.getPrice());
+		verifyClOrdId(request, report);
 		
 		String newOrderId = report.getOrderID();
 		NewOrderSingle newOrder = storage.get(newOrderId);
@@ -208,6 +228,7 @@ public class OrderReplaceRequestProcessorTest {
 		List<ExecutionReport> reports = replaceOrderProcessor.process(request);
 		ExecutionReport report = reports.get(0);
 		verifyReport(report, 9000, 2000, order.getPrice());
+		verifyClOrdId(request, report);
 		
 		String newOrderId = report.getOrderID();
 		NewOrderSingle newOrder = storage.get(newOrderId);
@@ -232,6 +253,7 @@ public class OrderReplaceRequestProcessorTest {
 		List<ExecutionReport> reports = replaceOrderProcessor.process(request);
 		ExecutionReport report = reports.get(0);
 		verifyReport(report, 6500, -500, order.getPrice());
+		verifyClOrdId(request, report);
 		
 		String newOrderId = report.getOrderID();
 		NewOrderSingle newOrder = storage.get(newOrderId);
@@ -256,6 +278,7 @@ public class OrderReplaceRequestProcessorTest {
 		List<ExecutionReport> reports = replaceOrderProcessor.process(request);
 		ExecutionReport report = reports.get(0);
 		verifyReport(report, 5500, -1500, order.getPrice());
+		verifyClOrdId(request, report);
 		
 		String newOrderId = report.getOrderID();
 		NewOrderSingle newOrder = storage.get(newOrderId);
@@ -277,6 +300,7 @@ public class OrderReplaceRequestProcessorTest {
 		List<ExecutionReport> reports = replaceOrderProcessor.process(request);
 		ExecutionReport report = reports.get(0);
 		verifyReport(report, 7000, 0, request.getPrice());
+		verifyClOrdId(request, report);
 		
 		String newOrderId = report.getOrderID();
 		NewOrderSingle newOrder = storage.get(newOrderId);
@@ -301,6 +325,7 @@ public class OrderReplaceRequestProcessorTest {
 		
 		ExecutionReport report = reports.get(0);
 		verifyReport(report, 4300, 0, request.getPrice());
+		verifyClOrdId(request, report);
 		
 		String newOrderId = report.getOrderID();
 		NewOrderSingle newOrder = storage.get(newOrderId);
@@ -308,6 +333,7 @@ public class OrderReplaceRequestProcessorTest {
 		Assert.assertEquals(4300, newOrder.getOrderQty());
 		Assert.assertEquals(request.getPrice(), newOrder.getPrice(), 0);
 	}
+	
 
 	@Test
 	public void testGeneratorReportWhenDecreaseQuantitySmallerThanCumQuantity() {
@@ -327,11 +353,8 @@ public class OrderReplaceRequestProcessorTest {
 		List<ExecutionReport> reports = replaceOrderProcessor.process(request);
 		
 		ExecutionReport report = reports.get(0);
-		Assert.assertEquals(report.getExecType() + " is not equals: " + '8', '8', report.getExecType());
-		Assert.assertEquals('8', report.getOrdStatus());
-		Assert.assertEquals("5", report.getOrdRejReason());
-		Assert.assertEquals(request.getClOrdID(), report.getClOrdID());
-		Assert.assertEquals(request.getClOrdID(), report.getOrderID());
+		VerifyRejectReport.verify(report);
+		verifyClOrdId(request, report);
 		Assert.assertNotNull(report.getText());
 	}
 	
@@ -354,6 +377,7 @@ public class OrderReplaceRequestProcessorTest {
 		
 		ExecutionReport report = reports.get(0);
 		verifyReport(report, request.getCashOrderQty(), 1200, request.getPrice());
+		verifyClOrdId(request, report);
 		
 		String newOrderId = report.getOrderID();
 		NewOrderSingle newOrder = storage.get(newOrderId);
@@ -361,9 +385,45 @@ public class OrderReplaceRequestProcessorTest {
 		Assert.assertEquals(request.getCashOrderQty(), newOrder.getOrderQty());
 		Assert.assertEquals(request.getPrice(), newOrder.getPrice(), 0);	
 	}
+
+	@Test
+	public void testGenerateReportWhenIncreasePriceAndOrderIsFilled() {
+		NewOrderSingle order = createNewOrder();
+		order.setOrderQty(0);
+		storage.add(order);
+		
+		OrderReplaceRequest request = createReplaceRequest();
+		request.setPrice(order.getPrice() + 1000);
+		List<ExecutionReport> reports = replaceOrderProcessor.process(request);
+		ExecutionReport report = reports.get(0);
+		
+		VerifyRejectReport.verify(report);
+		verifyClOrdId(request, report);
+		
+	}
 	
 	@Test
-	public void testGenerateReportWhenMultipleRepalceOrder() {
+	public void testGenerateReportWhenIncreaseQuantityAndOrderIsFilled() {
+		NewOrderSingle order = createNewOrder();
+		order.setOrderQty(0);
+		storage.add(order);
+		
+		OrderReplaceRequest request = createReplaceRequest();
+		request.setPrice(order.getPrice());
+		request.setOrderQty(1000);
+		request.setCashOrderQty(2000);
+
+		List<ExecutionReport> reports = replaceOrderProcessor.process(request);
+		ExecutionReport report = reports.get(0);
+		
+		VerifyRejectReport.verify(report);
+		verifyClOrdId(request, report);
+		
+	}
+	
+	
+	@Test
+	public void testGenerateReportWhenMultipleReplaceOrder() {
 		NewOrderSingle order = createNewOrder();
 		order.setOrderQty(8000);
 		storage.add(order);
@@ -408,21 +468,54 @@ public class OrderReplaceRequestProcessorTest {
 		Assert.assertEquals(report2.getClOrdID(),request2.getClOrdID());
 		Assert.assertEquals(report2.getOrigClOrdID(), request2.getClOrdID());
 		
+	}
+	
+	@Test
+	public void testGenerateReplaceReportWhenReplaceOrderWithExpectedDecreasedQuantityBiggerThanRemainQuantity() {
+		NewOrderSingle order = createNewOrder();
+		order.setOrderQty(200);
+		storage.add(order);
+		
+		OrderReplaceRequest request = createReplaceRequest();
+		request.setOrderQty(1000);
+		request.setCashOrderQty(700);
+		
+		List<ExecutionReport> reports = replaceOrderProcessor.process(request);
+		ExecutionReport report = reports.get(0);
+		VerifyRejectReport.verify(report);
 		
 	}
 	
+	@Test
+	public void testGenerateReplaceReportWhenReplaceOrderWithExpectedDecreasedQuantityEqualRemainQuantity() {
+		NewOrderSingle order = createNewOrder();
+		order.setOrderQty(200);
+		storage.add(order);
+		
+		OrderReplaceRequest request = createReplaceRequest();
+		request.setOrderQty(1000);
+		request.setCashOrderQty(800);
+		
+		List<ExecutionReport> reports = replaceOrderProcessor.process(request);
+		ExecutionReport report = reports.get(0);
+		VerifyRejectReport.verify(report);
+		
+	}
 	
 	private void verifyReport(ExecutionReport report, int lastQty, int leaveQty, double lastPx) {
-		Assert.assertEquals("gclordid", report.getClOrdID());
 		Assert.assertEquals("last quantity is invalid", lastQty, report.getLastQty());
 		Assert.assertEquals("leave quantity is invalid", leaveQty, report.getLeavesQty());
 		Assert.assertEquals("last price is invalid", lastPx, report.getLastPx(), 0);
 		Assert.assertEquals('5', report.getExecType()); 
 	}
 	
+	private void verifyClOrdId(OrderReplaceRequest request, ExecutionReport report) {
+		Assert.assertEquals(request.getClOrdID(), report.getClOrdID());
+	}
+	
 	private OrderReplaceRequest createReplaceRequest() {
 		OrderReplaceRequest request = new OrderReplaceRequest();
-		request.setClOrdID("gclordid");
+		request.setClOrdID("orderid");
 		request.setOrigClOrdID("orderid");
 		request.setSymbol("VND");
 		request.setPrice(4000);
@@ -439,4 +532,6 @@ public class OrderReplaceRequestProcessorTest {
 		order.setOrderQty(300);
 		return order;
 	}
+	
+	
 }

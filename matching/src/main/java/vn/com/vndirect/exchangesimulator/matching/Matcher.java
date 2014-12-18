@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import vn.com.vndirect.exchangesimulator.datastorage.order.OrderStorageService;
 import vn.com.vndirect.exchangesimulator.datastorage.queue.ExecutionReportQueue;
 import vn.com.vndirect.exchangesimulator.model.ExecutionReport;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
@@ -27,9 +28,11 @@ public class Matcher {
 	@Autowired
 	private ExecutionReportQueue executionReportQueue;
 	
+	@Autowired
+	private OrderStorageService orderStorageService;
+	
 	public List<ExecutionReport> push(NewOrderSingle order) {
 		List<ExecutionReport> reports = new ArrayList<>();
-		log.info("Is ATC " + isATC);
 		if (isATC) {
 			atcSessionAllOrderMatcher.push(order);
 		} else {
@@ -50,6 +53,21 @@ public class Matcher {
 	
 	public void beginATC() {
 		isATC = true;
+		pushAllOrderToATCMatcher();
+	}
+
+	private void pushAllOrderToATCMatcher() {
+		List<NewOrderSingle> orders = orderStorageService.getAllOrder();
+		for(NewOrderSingle order : orders) {
+			if (isNotATCOrder(order)) {
+				if (order.getOrderQty() == 0) continue;
+				atcSessionAllOrderMatcher.push(order);
+			}
+		}
+	}
+
+	private boolean isNotATCOrder(NewOrderSingle order) {
+		return order.getOrdType() != '5';
 	}
 	
 }

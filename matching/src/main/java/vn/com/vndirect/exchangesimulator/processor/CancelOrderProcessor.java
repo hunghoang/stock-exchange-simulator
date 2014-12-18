@@ -36,9 +36,9 @@ public class CancelOrderProcessor implements Processor {
 	private ExecutionReport cancelOrder(OrderCancelRequest request) {
 		String originClOrdId = request.getOrigClOrdID();
 		NewOrderSingle newOrderSingle = storage.get(originClOrdId);
-		if (newOrderSingle == null) {
+		if (newOrderSingle == null || newOrderSingle.getOrderQty() == 0) {
 			LOG.error("Root order does not exist for request: " + request);
-			return new ExecutionReport();
+			return buildRejectReport(request, newOrderSingle).get(0);
 		}
 		
 		ExecutionReport executionReport = buildCanceledExecutionReport(request, newOrderSingle);
@@ -59,9 +59,31 @@ public class CancelOrderProcessor implements Processor {
 		executionReport.setSide(newOrderSingle.getSide());
 		executionReport.setOrdType(newOrderSingle.getOrdType());
 		executionReport.setAccount(newOrderSingle.getAccount());
+		executionReport.setPrice(newOrderSingle.getPrice());
 		return executionReport;
 	}
 	
-	
+	private List<ExecutionReport> buildRejectReport(OrderCancelRequest request, NewOrderSingle originOrder) {
+		ExecutionReport executionReport = new ExecutionReport();
+		executionReport.setTargetCompID(request.getSenderCompID());
+		executionReport.setClOrdID(request.getClOrdID());
+		executionReport.setOrigClOrdID(request.getClOrdID());
+		executionReport.setExecType('8');
+		executionReport.setOrdRejReason("5");
+		executionReport.setOrdStatus('8');
+		executionReport.setOrderID(request.getClOrdID());
+		if (originOrder == null || originOrder.getOrderQty() == 0) {
+			executionReport.setText("order is not existed or filled");
+		} else {
+			executionReport.setOrdType(originOrder.getOrdType());
+			executionReport.setSide(originOrder.getSide());
+			executionReport.setOrdType(originOrder.getOrdType());
+			executionReport.setSide(originOrder.getSide());
+			executionReport.setText("order is rejected");
+		}
+		executionReport.setUnderlyingLastQty(0);
+
+		return Collections.singletonList(executionReport);
+	}	
 
 }

@@ -32,8 +32,7 @@ public class ReplaceOrderProcessor implements Processor {
 			return buildRejectReport(request, origOrder);
 		}
 
-		ExecutionReport report = buildReplacedExecutionReport(request,
-				origOrder);
+		ExecutionReport report = buildReplacedExecutionReport(request, origOrder);
 
 		reports.add(report);
 
@@ -52,8 +51,7 @@ public class ReplaceOrderProcessor implements Processor {
 		return reports;
 	}
 
-	private void updateNewQuantity(OrderReplaceRequest request,
-			NewOrderSingle origOrder) {
+	private void updateNewQuantity(OrderReplaceRequest request, NewOrderSingle origOrder) {
 		origOrder.setOrderQty(getReplaceQuantity(request.getCashOrderQty(),
 				request.getOrderQty(), origOrder.getOrderQty()));
 		origOrder.setOrgiQty(request.getCashOrderQty());
@@ -72,26 +70,31 @@ public class ReplaceOrderProcessor implements Processor {
 		return false;
 	}
 
-	protected NewOrderSingle generateNewOrder(OrderReplaceRequest request,
-			NewOrderSingle origOrder) {
+	protected NewOrderSingle generateNewOrder(OrderReplaceRequest request, NewOrderSingle origOrder) {
 		NewOrderSingle newOrderSingle = new NewOrderSingle();
 		newOrderSingle.setSymbol(origOrder.getSymbol());
 		newOrderSingle.setClOrdID(request.getClOrdID());
-		newOrderSingle.setOrderId(request.getClOrdID());
+		newOrderSingle.setOrderId(origOrder.getOrderId() + 'G');
 		newOrderSingle.setSenderCompID(request.getSenderCompID());
 		newOrderSingle.setSide(origOrder.getSide());
 		newOrderSingle.setOrdType(origOrder.getOrdType());
 		newOrderSingle.setAccount(origOrder.getAccount());
 		newOrderSingle.setPrice(request.getPrice());
-		newOrderSingle.setOrderQty(getReplaceQuantity(
-				request.getCashOrderQty(), request.getOrderQty(),
-				origOrder.getOrderQty()));
+		newOrderSingle.setOrderQty(getReplaceQuantity(request.getCashOrderQty(), request.getOrderQty(),	origOrder.getOrderQty()));
 
 		return newOrderSingle;
 	}
+	
+	protected String generateReplacedOrderID(String orderId) {
+		int numberInTheEndOfOrderId = Integer.parseInt(orderId.substring(orderId.length() - 3));
+		if (++numberInTheEndOfOrderId < 10e2) {
+			return orderId.substring(0, orderId.length() - 3) + "0" + numberInTheEndOfOrderId;
+		}
+		return orderId.substring(0, orderId.length() - 3) + numberInTheEndOfOrderId;
+	}
 
-	protected ExecutionReport buildReplacedExecutionReport(
-			OrderReplaceRequest request, NewOrderSingle origOrder) {
+
+	protected ExecutionReport buildReplacedExecutionReport(OrderReplaceRequest request, NewOrderSingle origOrder) {
 		ExecutionReport report = new ExecutionReport();
 		report.setTargetCompID(request.getSenderCompID());
 		report.setOrderID(origOrder.getOrderId());
@@ -100,10 +103,8 @@ public class ReplaceOrderProcessor implements Processor {
 		report.setExecType('5');
 		report.setOrdStatus('3');
 		report.setOrderID(origOrder.getOrderId());
-		report.setLastQty(getReplaceQuantity(request.getCashOrderQty(),
-				request.getOrderQty(), origOrder.getOrderQty()));
-		report.setLeavesQty(getLeaveQuantity(request.getCashOrderQty(),
-				request.getOrderQty(), origOrder.getOrderQty()));
+		report.setLastQty(getReplaceQuantity(request.getCashOrderQty(), request.getOrderQty(), origOrder.getOrderQty()));
+		report.setLeavesQty(getLeaveQuantity(request.getCashOrderQty(), request.getOrderQty()));
 		report.setLastPx(request.getPrice());
 		report.setSymbol(request.getSymbol());
 		report.setSide(origOrder.getSide());
@@ -112,24 +113,21 @@ public class ReplaceOrderProcessor implements Processor {
 		return report;
 	}
 
-	private int getLeaveQuantity(int cashOrderQty, int orderQty,
-			int originOrderQty) {
+	private int getLeaveQuantity(int cashOrderQty, int orderQty) {
 		if (cashOrderQty > 0) {
 			return cashOrderQty - orderQty;
 		}
 		return 0;
 	}
 
-	private int getReplaceQuantity(int cashOrderQty, int orderQty,
-			int originOrderQty) {
+	private int getReplaceQuantity(int cashOrderQty, int orderQty, int originOrderQty) {
 		if (cashOrderQty > 0) {
 			return originOrderQty + (cashOrderQty - orderQty);
 		}
 		return originOrderQty;
 	}
 
-	private List<ExecutionReport> buildRejectReport(
-			OrderReplaceRequest request, NewOrderSingle originOrder) {
+	private List<ExecutionReport> buildRejectReport(OrderReplaceRequest request, NewOrderSingle originOrder) {
 		ExecutionReport report = new ExecutionReport();
 		report.setTargetCompID(request.getSenderCompID());
 		report.setClOrdID(request.getClOrdID());
@@ -147,15 +145,14 @@ public class ReplaceOrderProcessor implements Processor {
 			report.setText("order is rejected");
 		}
 		report.setOrderID(request.getClOrdID());
-		report.setUnderlyingLastQty(request.getCashOrderQty()
-				- request.getOrderQty());
+		report.setUnderlyingLastQty(0);
 
 		return Collections.singletonList(report);
 	}
 
 	private boolean validate(OrderReplaceRequest request,
 			NewOrderSingle origOrder) {
-		if (origOrder == null) {
+		if (origOrder == null || origOrder.getOrderQty() == 0) {
 			return false;
 		}
 
@@ -166,16 +163,7 @@ public class ReplaceOrderProcessor implements Processor {
 	}
 
 	private boolean isReplaceWithExpectedDecreasingQuantityBiggerThanCurrentQuantity(int orderQty, int cashOrdQty, int origOrdQty) {
-		return orderQty - cashOrdQty > origOrdQty;
+		return orderQty - cashOrdQty >= origOrdQty;
 	}
 
 }
-
-/*
- * if (isReplaceQuantitySmallerThanCurrentQuantity(request.getOrderQty(),
- * request.getCashOrderQty(), origOrder.getOrgiQty())) { return false; } return
- * true; }
- * 
- * private boolean isReplaceQuantitySmallerThanCurrentQuantity(int orderQty, int
- * cashOrdQty, int origOrdQty) { return orderQty - cashOrdQty > origOrdQty; }
- */
