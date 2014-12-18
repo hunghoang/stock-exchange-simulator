@@ -2,9 +2,6 @@ package vn.com.vndirect.exchangesimulator.handler;
 
 import java.util.List;
 
-import org.apache.log4j.Logger;
-
-import vn.com.vndirect.exchangesimulator.datastorage.order.OrderStorage;
 import vn.com.vndirect.exchangesimulator.datastorage.order.Storage;
 import vn.com.vndirect.exchangesimulator.datastorage.order.StorageFactory;
 import vn.com.vndirect.exchangesimulator.datastorage.queue.ExecutionReportQueue;
@@ -14,19 +11,16 @@ import vn.com.vndirect.exchangesimulator.model.ExecutionReport;
 import vn.com.vndirect.exchangesimulator.model.HnxMessage;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
 import vn.com.vndirect.exchangesimulator.model.OrderCancelRequest;
-import vn.com.vndirect.exchangesimulator.model.OrderFactory;
 import vn.com.vndirect.exchangesimulator.model.OrderReplaceRequest;
 import vn.com.vndirect.exchangesimulator.processor.CancelOrderProcessor;
 import vn.com.vndirect.exchangesimulator.processor.NewOrderProcessor;
 import vn.com.vndirect.exchangesimulator.processor.NullProcessor;
+import vn.com.vndirect.exchangesimulator.processor.PendingNewOrderProcessor;
 import vn.com.vndirect.exchangesimulator.processor.Processor;
 import vn.com.vndirect.exchangesimulator.processor.ReplaceOrderProcessor;
-import vn.com.vndirect.exchangesimulator.validator.exception.ValidateException;
 
 public class SymbolHandler implements QueueListener {
  
-	private static final Logger LOG = Logger.getLogger(SymbolHandler.class);
-	
 	private ExecutionReportQueue queueOut;
 	
 	private CancelOrderProcessor cancelOrderProcessor;
@@ -35,6 +29,10 @@ public class SymbolHandler implements QueueListener {
 	
 	private ReplaceOrderProcessor replaceOrderProcessor;
 	
+	private PendingNewOrderProcessor pendingNewOrderProcessor;
+	
+	private final Processor nullProcessor = new NullProcessor();
+	
 	public SymbolHandler(ExecutionReportQueue queueOut, Matcher matcher, String symbol) {
 		this.queueOut = queueOut;
 		Storage<NewOrderSingle> orderStorage = StorageFactory.getStore(symbol);
@@ -42,18 +40,35 @@ public class SymbolHandler implements QueueListener {
 		this.cancelOrderProcessor = new CancelOrderProcessor(orderStorage, matcher); 
 		this.orderProcessor = new NewOrderProcessor(orderStorage, matcher);
 		this.replaceOrderProcessor = new ReplaceOrderProcessor(orderStorage, matcher);
+		this.pendingNewOrderProcessor = new PendingNewOrderProcessor(orderStorage);
 	}
 
 	@Override
 	public void onEvent(Object order) {
 		String type = getType(order);
 		
-		Processor processor = getProcessor(type);
+		preProcessor(order, type);
 		
-		List<ExecutionReport> reports = processor.process((HnxMessage) order);
-		
+		matchingProcessor(order, type);
+	}
+
+	private void preProcessor(Object order, String type) {
+		Processor preProcessor = getPreProcessor(type);
+		List<ExecutionReport> reports = preProcessor.process((HnxMessage) order);
 		updateQueueout(reports);
-		
+	}
+	
+	private void matchingProcessor(Object order, String type) {
+		Processor processor = getProcessor(type);
+		List<ExecutionReport> reports = processor.process((HnxMessage) order);
+		updateQueueout(reports);
+	}
+
+	private Processor getPreProcessor(String type) {
+		if (NewOrderSingle.class.getSimpleName().equals(type)) {
+			return pendingNewOrderProcessor;
+		}
+		return nullProcessor;
 	}
 
 	private void updateQueueout(List<ExecutionReport> reports) {
@@ -72,7 +87,7 @@ public class SymbolHandler implements QueueListener {
 		if (OrderReplaceRequest.class.getSimpleName().equals(type)) {
 			return replaceOrderProcessor;
 		}
-		return new NullProcessor();
+		return nullProcessor;
 	}
 
 	private String getType(Object order) {
