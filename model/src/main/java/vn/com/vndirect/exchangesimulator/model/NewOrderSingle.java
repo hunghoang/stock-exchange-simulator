@@ -19,18 +19,9 @@ public class NewOrderSingle extends HnxMessage{
 	private Double price;
 	private Double stopPx;
 	private String orderId;
-	private Integer orgiQty;
 	private String origClOrdID;
 
-	public Integer getOrgiQty() {
-		return orgiQty;
-	}
-
-	public void setOrgiQty(Integer orgiQty) {
-		this.orgiQty = orgiQty;
-	}
-
-	
+		
 	public String getOrigClOrdID() {
 		return origClOrdID;
 	}
@@ -133,7 +124,7 @@ public class NewOrderSingle extends HnxMessage{
 	}
 
 	public double getPrice() {
-		return Math.round(price);
+		return Math.round(price == null ? 0 : price);
 	}
 
 	public void setPrice(double price) {
