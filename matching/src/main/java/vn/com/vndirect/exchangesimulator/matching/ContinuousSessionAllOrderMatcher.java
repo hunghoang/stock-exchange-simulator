@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import vn.com.vndirect.exchangesimulator.datastorage.memory.InMemory;
+import vn.com.vndirect.exchangesimulator.matching.index.OrderPriceIndex;
 import vn.com.vndirect.exchangesimulator.model.ExecutionReport;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
 import vn.com.vndirect.exchangesimulator.model.SecurityStatus;
@@ -22,6 +23,10 @@ public class ContinuousSessionAllOrderMatcher {
 	private InMemory memory; 
 	private Map<String, ContinuousSessionMatcher> matcherMap = new HashMap<String, ContinuousSessionMatcher>();
 	
+	private OrderMatcher orderMatcher = new OrderMatcher(new ContinuousReport());
+	
+	private OrderPriceIndex orderPriceIndex = new OrderPriceIndex();
+	
 	protected int getFloor(String symbol){
 		SecurityStatus securityStatus = (SecurityStatus) memory.get("securitystatus", symbol);
 		return (int) Math.floor(securityStatus.getLowPx());	}
@@ -32,14 +37,17 @@ public class ContinuousSessionAllOrderMatcher {
 	}
 	
 	public void push(NewOrderSingle order){
-		String lastSymbol = order.getSymbol();
-		if (!matcherMap.containsKey(lastSymbol)){			
-			int floorPrice = getFloor(lastSymbol);
-			int ceilingPrice = getCeil(lastSymbol);
-			matcherMap.put(lastSymbol, new ContinuousSessionMatcher(lastSymbol, floorPrice, ceilingPrice, 100));
+		String symbol = order.getSymbol();
+		if (!matcherMap.containsKey(symbol)){			
+			matcherMap.put(symbol, new ContinuousSessionMatcher(symbol, getPriceRange(symbol), orderMatcher, orderPriceIndex));
 		}
-		matcherMap.get(lastSymbol).push(order);
-		log.info("Symbol: " + lastSymbol + " matcherMap size of symbol: " + matcherMap.size());
+		matcherMap.get(symbol).push(order);
+	}
+
+	private PriceRange getPriceRange(String symbol) {
+		int floorPrice = getFloor(symbol);
+		int ceilingPrice = getCeil(symbol);
+		return new PriceRange(floorPrice, ceilingPrice, 100);
 	}
 
 	public List<ExecutionReport> getExecutionReport(String symbol) {

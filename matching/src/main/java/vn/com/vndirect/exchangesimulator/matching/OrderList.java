@@ -7,7 +7,7 @@ import java.util.List;
 
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
 
-class OrderList {
+public class OrderList {
 	private List<NewOrderSingle> orders;
 
 	

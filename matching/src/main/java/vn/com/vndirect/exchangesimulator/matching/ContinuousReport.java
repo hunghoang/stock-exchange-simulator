@@ -4,6 +4,7 @@ import java.util.List;
 
 import vn.com.vndirect.exchangesimulator.model.ExecutionReport;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
+import vn.com.vndirect.exchangesimulator.model.OrdStatus;
 
 public class ContinuousReport extends ReportGenerator {
 
@@ -19,16 +20,16 @@ public class ContinuousReport extends ReportGenerator {
 		rp1.setSecondaryClOrdID(buyId);
 		
 
+		double price = Math.max(currOrder.getPrice(), nextOrder.getPrice());
 		int minQty = Math.min(currOrder.getOrderQty(), nextOrder.getOrderQty());
 		rp1.setOrderQty(minQty);
 		
 		rp1.setLastQty(minQty);
 		
-		rp1.setOrdStatus('2');
+		rp1.setOrdStatus(OrdStatus.FILL);
+		rp1.setPrice(price);
 		
-		rp1.setPrice(currOrder.getPrice());
-		
-		rp1.setLastPx(currOrder.getPrice());
+		rp1.setLastPx(price);
 		
 		if (!currOrder.getSenderCompID().equals(nextOrder.getSenderCompID())) {
 			ExecutionReport rp2 = genReport(nextOrder);
@@ -36,9 +37,9 @@ public class ContinuousReport extends ReportGenerator {
 			rp2.setSecondaryClOrdID(buyId);
 			rp2.setOrderQty(minQty);
 			rp2.setLastQty(minQty);
-			rp2.setOrdStatus('2');
-			rp2.setPrice(currOrder.getPrice());
-			rp2.setLastPx(currOrder.getPrice());
+			rp2.setOrdStatus(OrdStatus.FILL);
+			rp2.setPrice(price);
+			rp2.setLastPx(price);
 			return genList(rp1, rp2);
 		}
 		return genList(rp1);

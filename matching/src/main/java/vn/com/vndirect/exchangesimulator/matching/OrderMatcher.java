@@ -3,6 +3,8 @@ package vn.com.vndirect.exchangesimulator.matching;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.stereotype.Component;
+
 import vn.com.vndirect.exchangesimulator.model.ExecutionReport;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
 
@@ -40,8 +42,7 @@ public class OrderMatcher {
 		return result;
 	}
 
-	private void updateMatchedOrder(NewOrderSingle currentOrder,
-			NewOrderSingle newOrder) {
+	private void updateMatchedOrder(NewOrderSingle currentOrder, NewOrderSingle newOrder) {
 		int currQuantity = currentOrder.getOrderQty();
 		int newQuantity = newOrder.getOrderQty();
 		int minQty = Math.min(currQuantity, newQuantity);
@@ -50,8 +51,7 @@ public class OrderMatcher {
 		newOrder.setOrderQty(newQuantity - minQty);
 	}
 
-	private List<ExecutionReport> match(NewOrderSingle currOrder,
-			NewOrderSingle nextOrder) {
+	private List<ExecutionReport> match(NewOrderSingle currOrder, NewOrderSingle nextOrder) {
 		List<ExecutionReport> result = reportGenerator.createReport(currOrder, nextOrder);
 		updateMatchedOrder(currOrder, nextOrder);
 		return result;

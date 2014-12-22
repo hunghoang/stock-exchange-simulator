@@ -3,6 +3,7 @@ package vn.com.vndirect.exchangesimulator.matching;
 import java.util.ArrayList;
 import java.util.List;
 
+import vn.com.vndirect.exchangesimulator.model.ExecType;
 import vn.com.vndirect.exchangesimulator.model.ExecutionReport;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
 
@@ -15,12 +16,11 @@ abstract class ReportGenerator {
 		String orderID = order.getOrderId() + (System.currentTimeMillis() % 1000);
 		rp.setOrderID(orderID);
 		rp.setExecID(orderID);
-		rp.setExecType('3');
+		rp.setExecType(ExecType.FILL);
 		rp.setSymbol(order.getSymbol());
 		rp.setOrderQty(order.getOrderQty());
 		rp.setSide(order.getSide());
 		rp.setAccount(order.getAccount());
-		rp.setPrice(order.getPrice());
 		return rp;
 	}
 	

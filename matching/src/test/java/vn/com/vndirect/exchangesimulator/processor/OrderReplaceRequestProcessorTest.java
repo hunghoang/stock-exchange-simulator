@@ -91,18 +91,6 @@ public class OrderReplaceRequestProcessorTest {
 	}
 	
 	@Test
-	public void testGenerateReplaceOrderId() {
-		String orderId = replaceOrderProcessor.generateReplacedOrderID("orderid012");
-		Assert.assertEquals("orderid013", orderId);
-		orderId = replaceOrderProcessor.generateReplacedOrderID("orderid013");
-		Assert.assertEquals("orderid014", orderId);
-		orderId = replaceOrderProcessor.generateReplacedOrderID("orderid019");
-		Assert.assertEquals("orderid020", orderId);
-		orderId = replaceOrderProcessor.generateReplacedOrderID("orderid999");
-		Assert.assertEquals("orderid1000", orderId);
-	}
-	
-	@Test
 	public void testProcessorGenerateReportWhenDecreaseQuantity() {
 		NewOrderSingle order = createNewOrder();
 		order.setOrderQty(6000);
@@ -516,7 +504,7 @@ public class OrderReplaceRequestProcessorTest {
 	private OrderReplaceRequest createReplaceRequest() {
 		OrderReplaceRequest request = new OrderReplaceRequest();
 		request.setClOrdID("orderid");
-		request.setOrigClOrdID("orderid");
+		request.setOrigClOrdID("orderid012");
 		request.setSymbol("VND");
 		request.setPrice(4000);
 		return request;
@@ -526,7 +514,7 @@ public class OrderReplaceRequestProcessorTest {
 		NewOrderSingle order = new NewOrderSingle();
 		order.setSide('1');
 		order.setClOrdID("clordid");
-		order.setOrderId("orderid");
+		order.setOrderId("orderid012");
 		order.setOrdType('2');
 		order.setPrice(4000);
 		order.setOrderQty(300);

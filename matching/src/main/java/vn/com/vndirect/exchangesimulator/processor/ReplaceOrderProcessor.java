@@ -6,9 +6,11 @@ import java.util.List;
 
 import vn.com.vndirect.exchangesimulator.datastorage.order.Storage;
 import vn.com.vndirect.exchangesimulator.matching.Matcher;
+import vn.com.vndirect.exchangesimulator.model.ExecType;
 import vn.com.vndirect.exchangesimulator.model.ExecutionReport;
 import vn.com.vndirect.exchangesimulator.model.HnxMessage;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
+import vn.com.vndirect.exchangesimulator.model.OrdStatus;
 import vn.com.vndirect.exchangesimulator.model.OrderReplaceRequest;
 
 public class ReplaceOrderProcessor implements Processor {
@@ -17,8 +19,7 @@ public class ReplaceOrderProcessor implements Processor {
 
 	private Matcher matcher;
 
-	public ReplaceOrderProcessor(Storage<NewOrderSingle> orderStorage,
-			Matcher matcher) {
+	public ReplaceOrderProcessor(Storage<NewOrderSingle> orderStorage, Matcher matcher) {
 		this.storage = orderStorage;
 		this.matcher = matcher;
 	}
@@ -38,22 +39,23 @@ public class ReplaceOrderProcessor implements Processor {
 
 		if (isModifyPriceOrIncreaseQuantity(request, origOrder)) {
 			NewOrderSingle newOrder = generateNewOrder(request, origOrder);
-			matcher.cancelOrder(origOrder);
-			storage.remove(origOrder.getOrderId());
+			removeOldOrder(origOrder);
+			storage.add(newOrder);
 			report.setOrderID(newOrder.getOrderId());
-			if (newOrder != null) {
-				reports.addAll(matcher.push(newOrder));
-				storage.add(newOrder);
-			}
+			reports.addAll(matcher.push(newOrder));
 		} else {
 			updateNewQuantity(request, origOrder);
 		}
 		return reports;
 	}
 
+	private void removeOldOrder(NewOrderSingle origOrder) {
+		matcher.cancelOrder(origOrder);
+		storage.remove(origOrder.getOrderId());
+	}
+
 	private void updateNewQuantity(OrderReplaceRequest request, NewOrderSingle origOrder) {
-		origOrder.setOrderQty(getReplaceQuantity(request.getCashOrderQty(),
-				request.getOrderQty(), origOrder.getOrderQty()));
+		origOrder.setOrderQty(getReplaceQuantity(request.getCashOrderQty(), request.getOrderQty(), origOrder.getOrderQty()));
 		origOrder.setOrgiQty(request.getCashOrderQty());
 	}
 
@@ -74,7 +76,7 @@ public class ReplaceOrderProcessor implements Processor {
 		NewOrderSingle newOrderSingle = new NewOrderSingle();
 		newOrderSingle.setSymbol(origOrder.getSymbol());
 		newOrderSingle.setClOrdID(request.getClOrdID());
-		newOrderSingle.setOrderId(origOrder.getOrderId() + 'G');
+		newOrderSingle.setOrderId(origOrder.getOrderId());
 		newOrderSingle.setSenderCompID(request.getSenderCompID());
 		newOrderSingle.setSide(origOrder.getSide());
 		newOrderSingle.setOrdType(origOrder.getOrdType());
@@ -85,32 +87,23 @@ public class ReplaceOrderProcessor implements Processor {
 		return newOrderSingle;
 	}
 	
-	protected String generateReplacedOrderID(String orderId) {
-		int numberInTheEndOfOrderId = Integer.parseInt(orderId.substring(orderId.length() - 3));
-		if (++numberInTheEndOfOrderId < 10e2) {
-			return orderId.substring(0, orderId.length() - 3) + "0" + numberInTheEndOfOrderId;
-		}
-		return orderId.substring(0, orderId.length() - 3) + numberInTheEndOfOrderId;
-	}
-
-
 	protected ExecutionReport buildReplacedExecutionReport(OrderReplaceRequest request, NewOrderSingle origOrder) {
-		ExecutionReport report = new ExecutionReport();
-		report.setTargetCompID(request.getSenderCompID());
-		report.setOrderID(origOrder.getOrderId());
-		report.setClOrdID(request.getClOrdID());
-		report.setOrigClOrdID(request.getClOrdID());
-		report.setExecType('5');
-		report.setOrdStatus('3');
-		report.setOrderID(origOrder.getOrderId());
-		report.setLastQty(getReplaceQuantity(request.getCashOrderQty(), request.getOrderQty(), origOrder.getOrderQty()));
-		report.setLeavesQty(getLeaveQuantity(request.getCashOrderQty(), request.getOrderQty()));
-		report.setLastPx(request.getPrice());
-		report.setSymbol(request.getSymbol());
-		report.setSide(origOrder.getSide());
-		report.setOrdType(origOrder.getOrdType());
-		report.setAccount(origOrder.getAccount());
-		return report;
+		ExecutionReport executionReport = new ExecutionReport();
+		executionReport.setTargetCompID(request.getSenderCompID());
+		executionReport.setOrderID(origOrder.getOrderId());
+		executionReport.setClOrdID(request.getClOrdID());
+		executionReport.setOrigClOrdID(request.getClOrdID());
+		executionReport.setExecType(ExecType.REPLACE);
+		executionReport.setOrdStatus(OrdStatus.CANCELORREPLACE);
+		executionReport.setOrderID(origOrder.getOrderId());
+		executionReport.setLastQty(getReplaceQuantity(request.getCashOrderQty(), request.getOrderQty(), origOrder.getOrderQty()));
+		executionReport.setLeavesQty(getLeaveQuantity(request.getCashOrderQty(), request.getOrderQty()));
+		executionReport.setLastPx(request.getPrice());
+		executionReport.setSymbol(request.getSymbol());
+		executionReport.setSide(origOrder.getSide());
+		executionReport.setOrdType(origOrder.getOrdType());
+		executionReport.setAccount(origOrder.getAccount());
+		return executionReport;
 	}
 
 	private int getLeaveQuantity(int cashOrderQty, int orderQty) {

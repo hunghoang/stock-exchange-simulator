@@ -4,6 +4,8 @@ public class PriceRange {
 	private int stepCount;
 	private int floor;
 	private int priceStep;
+
+
 	private int ceil;
 
 	public PriceRange(int floorPrice, int ceilingPrice, int priceStep) {
@@ -37,4 +39,7 @@ public class PriceRange {
 		return floor + index * priceStep;
 	}
 
+	public int getPriceStep() {
+		return priceStep;
+	}
 }

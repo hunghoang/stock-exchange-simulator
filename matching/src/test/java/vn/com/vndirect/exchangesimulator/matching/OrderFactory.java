@@ -17,6 +17,17 @@ public class OrderFactory {
 		return order;
 	}
 	
+	public static NewOrderSingle createMTLOrder(String account, char side, String symbol, int quantity){
+		NewOrderSingle order = new NewOrderSingle();
+		order.setSide(side);
+		order.setOrdType('T');
+		order.setAccount(account);
+		order.setSymbol(symbol);
+		order.setOrderQty(quantity);
+		order.setSenderCompID(UUID.randomUUID().toString());
+		return order;
+	}
+	
 	public static NewOrderSingle createATCOrder(String account, char side, String symbol, int quantity){
 		NewOrderSingle order = new NewOrderSingle();
 		order.setSide(side);
@@ -31,6 +42,14 @@ public class OrderFactory {
 	public static NewOrderSingle createLOBuy(String symbol, int quantity, int price) {
 		return OrderFactory.createLOOrder(String.valueOf(Math.random()), NewOrderSingle.BUY,
 				symbol, quantity, price);
+	}
+	
+	public static NewOrderSingle createMTLBuy(String symbol, int quantity) {
+		return OrderFactory.createMTLOrder(String.valueOf(Math.random()), NewOrderSingle.BUY, symbol, quantity);
+	}
+	
+	public static NewOrderSingle createMTLSell(String symbol, int quantity) {
+		return OrderFactory.createMTLOrder(String.valueOf(Math.random()), NewOrderSingle.SELL, symbol, quantity);
 	}
 	
 	public static NewOrderSingle createATCBuy(String symbol, int quantity) {

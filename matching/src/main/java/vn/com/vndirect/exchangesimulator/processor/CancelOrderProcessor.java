@@ -7,9 +7,11 @@ import org.apache.log4j.Logger;
 
 import vn.com.vndirect.exchangesimulator.datastorage.order.Storage;
 import vn.com.vndirect.exchangesimulator.matching.Matcher;
+import vn.com.vndirect.exchangesimulator.model.ExecType;
 import vn.com.vndirect.exchangesimulator.model.ExecutionReport;
 import vn.com.vndirect.exchangesimulator.model.HnxMessage;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
+import vn.com.vndirect.exchangesimulator.model.OrdStatus;
 import vn.com.vndirect.exchangesimulator.model.OrderCancelRequest;
 
 public class CancelOrderProcessor implements Processor {
@@ -49,8 +51,8 @@ public class CancelOrderProcessor implements Processor {
 	private ExecutionReport buildCanceledExecutionReport(OrderCancelRequest request, NewOrderSingle newOrderSingle) {
 		ExecutionReport executionReport = new ExecutionReport();
 		executionReport.setTargetCompID(newOrderSingle.getSenderCompID());
-		executionReport.setExecType('4');
-		executionReport.setOrdStatus('3');
+		executionReport.setExecType(ExecType.CANCEL);
+		executionReport.setOrdStatus(OrdStatus.CANCELORREPLACE);
 		executionReport.setOrderID('f'+ newOrderSingle.getOrderId());
 		executionReport.setLeavesQty(newOrderSingle.getOrderQty());
 		executionReport.setClOrdID(request.getClOrdID());
@@ -68,9 +70,9 @@ public class CancelOrderProcessor implements Processor {
 		executionReport.setTargetCompID(request.getSenderCompID());
 		executionReport.setClOrdID(request.getClOrdID());
 		executionReport.setOrigClOrdID(request.getClOrdID());
-		executionReport.setExecType('8');
+		executionReport.setExecType(ExecType.REJECT);
 		executionReport.setOrdRejReason("5");
-		executionReport.setOrdStatus('8');
+		executionReport.setOrdStatus(OrdStatus.REJECT);
 		executionReport.setOrderID(request.getClOrdID());
 		if (originOrder == null || originOrder.getOrderQty() == 0) {
 			executionReport.setText("order is not existed or filled");

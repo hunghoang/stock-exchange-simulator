@@ -5,9 +5,11 @@ import java.util.Date;
 import java.util.List;
 
 import vn.com.vndirect.exchangesimulator.datastorage.order.Storage;
+import vn.com.vndirect.exchangesimulator.model.ExecType;
 import vn.com.vndirect.exchangesimulator.model.ExecutionReport;
 import vn.com.vndirect.exchangesimulator.model.HnxMessage;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
+import vn.com.vndirect.exchangesimulator.model.OrdStatus;
 
 public class PendingNewOrderProcessor implements Processor {
 
@@ -31,11 +33,8 @@ public class PendingNewOrderProcessor implements Processor {
 
 	protected ExecutionReport buildConfirmOrder(NewOrderSingle message) {
 		ExecutionReport executionReport = new ExecutionReport();
-		String orderId = message.getOrderId();
-		message.setOrderId(orderId);
-		
 		executionReport.setTargetCompID(message.getSenderCompID());
-		executionReport.setOrderID(orderId);
+		executionReport.setOrderID(message.getOrderId());
 		executionReport.setClOrdID(message.getClOrdID());
 		executionReport.setPrice(message.getPrice());
 		executionReport.setOrderQty(message.getOrderQty());
@@ -43,8 +42,8 @@ public class PendingNewOrderProcessor implements Processor {
 		executionReport.setAccount(message.getAccount());
 		executionReport.setTransactTime(new Date());
 		executionReport.setSide(message.getSide());
-		executionReport.setOrdStatus('A');
-		executionReport.setExecType('0');
+		executionReport.setOrdStatus(OrdStatus.PENDING_NEW);
+		executionReport.setExecType(ExecType.NEW);
 		executionReport.setOrdType(message.getOrdType());
 		return executionReport;
 	}

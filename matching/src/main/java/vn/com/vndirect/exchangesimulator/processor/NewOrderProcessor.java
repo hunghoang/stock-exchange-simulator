@@ -6,9 +6,11 @@ import java.util.List;
 
 import vn.com.vndirect.exchangesimulator.datastorage.order.Storage;
 import vn.com.vndirect.exchangesimulator.matching.Matcher;
+import vn.com.vndirect.exchangesimulator.model.ExecType;
 import vn.com.vndirect.exchangesimulator.model.ExecutionReport;
 import vn.com.vndirect.exchangesimulator.model.HnxMessage;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
+import vn.com.vndirect.exchangesimulator.model.OrdStatus;
 
 public class NewOrderProcessor implements Processor {
 
@@ -25,11 +27,7 @@ public class NewOrderProcessor implements Processor {
 	public List<ExecutionReport> process(HnxMessage message) {
 		List<ExecutionReport> executionReports = new ArrayList<ExecutionReport>();
 		NewOrderSingle newOrderSingle = (NewOrderSingle) message; 
-		updateOrgiQty(newOrderSingle);
 		storeOrder(newOrderSingle);
-		
-		ExecutionReport executionReport = buildConfirmOrder(newOrderSingle);
-		executionReports.add(executionReport);
 		
 		List<ExecutionReport> matchedExecutionReports = matcher.push(newOrderSingle);
 		cleanFilledOrder(matchedExecutionReports);
@@ -38,30 +36,6 @@ public class NewOrderProcessor implements Processor {
 		return executionReports;
 	}
 
-	private void updateOrgiQty(NewOrderSingle newOrderSingle) {
-		newOrderSingle.setOrgiQty(newOrderSingle.getOrderQty());
-	}
-
-	protected ExecutionReport buildConfirmOrder(NewOrderSingle message) {
-		ExecutionReport executionReport = new ExecutionReport();
-		String orderId = message.getOrderId();
-		message.setOrderId(orderId);
-		
-		executionReport.setTargetCompID(message.getSenderCompID());
-		executionReport.setOrderID(orderId);
-		executionReport.setClOrdID(message.getClOrdID());
-		executionReport.setPrice(message.getPrice());
-		executionReport.setOrderQty(message.getOrderQty());
-		executionReport.setSymbol(message.getSymbol());
-		executionReport.setAccount(message.getAccount());
-		executionReport.setTransactTime(new Date());
-		executionReport.setSide(message.getSide());
-		executionReport.setOrdStatus('A');
-		executionReport.setExecType('0');
-		executionReport.setOrdType(message.getOrdType());
-		return executionReport;
-	}
-	
 	private void storeOrder(final NewOrderSingle newOrderSingle) {
 		orderStorage.add(newOrderSingle);
 	}
