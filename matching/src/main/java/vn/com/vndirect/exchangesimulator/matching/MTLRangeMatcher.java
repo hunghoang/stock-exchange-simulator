@@ -6,6 +6,7 @@ import java.util.List;
 import vn.com.vndirect.exchangesimulator.matching.index.OrderPriceIndex;
 import vn.com.vndirect.exchangesimulator.model.ExecutionReport;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
+import vn.com.vndirect.exchangesimulator.processor.PendingNewReportGenerator;
 
 public class MTLRangeMatcher extends RangeMatcher {
 
@@ -70,6 +71,7 @@ public class MTLRangeMatcher extends RangeMatcher {
 			} else {
 				order.setPrice(matchingPrice + priceRange.getPriceStep());
 			}
+			reports.add(PendingNewReportGenerator.report(order));
 		}
 		
 	}

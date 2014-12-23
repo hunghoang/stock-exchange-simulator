@@ -32,20 +32,7 @@ public class PendingNewOrderProcessor implements Processor {
 	}
 
 	protected ExecutionReport buildConfirmOrder(NewOrderSingle message) {
-		ExecutionReport executionReport = new ExecutionReport();
-		executionReport.setTargetCompID(message.getSenderCompID());
-		executionReport.setOrderID(message.getOrderId());
-		executionReport.setClOrdID(message.getClOrdID());
-		executionReport.setPrice(message.getPrice());
-		executionReport.setOrderQty(message.getOrderQty());
-		executionReport.setSymbol(message.getSymbol());
-		executionReport.setAccount(message.getAccount());
-		executionReport.setTransactTime(new Date());
-		executionReport.setSide(message.getSide());
-		executionReport.setOrdStatus(OrdStatus.PENDING_NEW);
-		executionReport.setExecType(ExecType.NEW);
-		executionReport.setOrdType(message.getOrdType());
-		return executionReport;
+		return PendingNewReportGenerator.report(message);
 	}
 	
 	private void storeOrder(final NewOrderSingle newOrderSingle) {

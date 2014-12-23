@@ -38,6 +38,7 @@ public class ContinuousSessionMatcher {
 		
 		if (rangeMatcher == null) {
 			log.warn("No matcher for this order type: " + order.getOrdType());
+			return;
 		}
 		
 		lastReports = rangeMatcher.match(order);
