@@ -51,6 +51,8 @@ public class SymbolRouter implements QueueListener {
 			symbol = ((OrderCancelRequest) order).getSymbol();
 		} else if (OrderReplaceRequest.class.isInstance(order)) {
 			symbol = ((OrderReplaceRequest) order).getSymbol();
+		} else {
+			LOGGER.warn("symbol is empty in order: " + order);
 		}
 		return symbol;
 	}

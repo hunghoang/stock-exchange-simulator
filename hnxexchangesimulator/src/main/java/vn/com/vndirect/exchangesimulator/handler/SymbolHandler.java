@@ -2,6 +2,8 @@ package vn.com.vndirect.exchangesimulator.handler;
 
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import vn.com.vndirect.exchangesimulator.datastorage.order.Storage;
 import vn.com.vndirect.exchangesimulator.datastorage.order.StorageFactory;
 import vn.com.vndirect.exchangesimulator.datastorage.queue.ExecutionReportQueue;
@@ -21,6 +23,8 @@ import vn.com.vndirect.exchangesimulator.processor.ReplaceOrderProcessor;
 
 public class SymbolHandler implements QueueListener {
  
+	private static final Logger LOGGER = Logger.getLogger(SymbolHandler.class);
+	
 	private ExecutionReportQueue queueOut;
 	
 	private CancelOrderProcessor cancelOrderProcessor;
@@ -53,6 +57,7 @@ public class SymbolHandler implements QueueListener {
 	}
 
 	private void preProcessor(Object order, String type) {
+		LOGGER.info("pre process order: " + order + " with type: " + type);
 		Processor preProcessor = getPreProcessor(type);
 		List<ExecutionReport> reports = preProcessor.process((HnxMessage) order);
 		updateQueueout(reports);
