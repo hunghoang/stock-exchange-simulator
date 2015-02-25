@@ -4,9 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import org.apache.log4j.Logger;
 
 public abstract class AbstractQueueService<T> implements QueueService<T> {
 
+	private static final Logger LOGGER = Logger.getLogger(AbstractQueueService.class);
+	
 	protected final BlockingQueue<T> queue = new LinkedBlockingQueue<T>();
 
 	private final List<QueueListener> queueListeners = new ArrayList<QueueListener>();
@@ -41,7 +44,11 @@ public abstract class AbstractQueueService<T> implements QueueService<T> {
 
 	private void callListener(T t) {
 		for (QueueListener listener : queueListeners) {
-			listener.onEvent(t);
+			try {
+				listener.onEvent(t);
+			} catch(Exception e) {
+				LOGGER.error("error when call listener", e);
+			}
 		}
 	}
 
