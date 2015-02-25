@@ -43,6 +43,7 @@ public class ExecutionReport extends HnxMessage{
 	public void setExecType(char execType) {
 		this.execType = execType;
 	}
+
 	public boolean isPossDupFlag() {
 		return possDupFlag;
 	}
@@ -181,6 +182,19 @@ public class ExecutionReport extends HnxMessage{
 	public void setUnderlyingLastQty(double underlyingLastQty) {
 		this.underlyingLastQty = underlyingLastQty;
 	}
-	
+
+	@Override
+	public String toString() {
+		return "ExecutionReport [text=" + text + ", execType=" + execType
+				+ ", ordStatus=" + ordStatus + ", orderID=" + orderID
+				+ ", clOrdID=" + clOrdID + ", symbol=" + symbol + ", side="
+				+ side + ", orderQty=" + orderQty + ", ordType=" + ordType
+				+ ", price=" + price + ", account=" + account + ", stopPx="
+				+ stopPx + ", leavesQty=" + leavesQty + ", origClOrdID="
+				+ origClOrdID + ", lastQty=" + lastQty + ", lastPx=" + lastPx
+				+ ", secondaryClOrdID=" + secondaryClOrdID + ", execID="
+				+ execID + ", ordRejReason=" + ordRejReason
+				+ ", underlyingLastQty=" + underlyingLastQty + "]";
+	}
 	
 }
