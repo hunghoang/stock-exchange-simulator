@@ -44,14 +44,16 @@ public class NewOrderProcessor implements Processor {
 			NewOrderSingle sellOrder = orderStorage.get(sellOrderId);
 			NewOrderSingle buyOrder = orderStorage.get(buyOrderId);
 			
-			if (isOrderFilled(sellOrder)) {
-				orderStorage.remove(sellOrder.getOrderId());
-			}
-			if (isOrderFilled(buyOrder)) {
-				orderStorage.remove(buyOrder.getOrderId());
-			}
+			removeOrderIfFilled(sellOrder);
+			removeOrderIfFilled(buyOrder);
 		}
 		
+	}
+
+	private void removeOrderIfFilled(NewOrderSingle order) {
+		if (isOrderFilled(order)) {
+			orderStorage.remove(order.getOrderId());
+		}
 	}
 
 	private boolean isOrderFilled(NewOrderSingle order) {

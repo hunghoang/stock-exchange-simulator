@@ -56,7 +56,6 @@ public class ReplaceOrderProcessor implements Processor {
 
 	private void updateNewQuantity(OrderReplaceRequest request, NewOrderSingle origOrder) {
 		origOrder.setOrderQty(getReplaceQuantity(request.getCashOrderQty(), request.getOrderQty(), origOrder.getOrderQty()));
-		origOrder.setOrgiQty(request.getCashOrderQty());
 	}
 
 	protected boolean isModifyPriceOrIncreaseQuantity(

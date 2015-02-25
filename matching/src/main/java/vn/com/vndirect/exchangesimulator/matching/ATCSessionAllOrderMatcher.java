@@ -19,19 +19,18 @@ public class ATCSessionAllOrderMatcher {
 	
 	@Autowired
 	private InMemory memory; 
-	private String lastSymbol = "";
 	private Map<String, ATCSessionMatcher> matcherMap = new HashMap<String, ATCSessionMatcher>();
 	
 	public void push(NewOrderSingle order){
 		String  symbol = order.getSymbol();
-		if (!matcherMap.containsKey(lastSymbol)){
-			SecurityStatus securityStatus = (SecurityStatus) memory.get("securitystatus", lastSymbol);
+		if (!matcherMap.containsKey(symbol)){
+			SecurityStatus securityStatus = (SecurityStatus) memory.get("securitystatus", symbol);
 			int floorPrice = (int) Math.floor(securityStatus.getLowPx());
 			int ceilingPrice = (int) Math.floor(securityStatus.getHighPx());
 			PriceRange range = new PriceRange(floorPrice, ceilingPrice, 100);
-			matcherMap.put(lastSymbol, new ATCSessionMatcher(range, symbol));
+			matcherMap.put(symbol, new ATCSessionMatcher(range, symbol));
 		}
-		matcherMap.get(lastSymbol).push(order);
+		matcherMap.get(symbol).push(order);
 	}
 
 	public void clear(){

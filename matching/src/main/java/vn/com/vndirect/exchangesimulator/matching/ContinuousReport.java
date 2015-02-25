@@ -20,7 +20,7 @@ public class ContinuousReport extends ReportGenerator {
 		rp1.setSecondaryClOrdID(buyId);
 		
 
-		double price = Math.max(currOrder.getPrice(), nextOrder.getPrice());
+		double price = currOrder.getPrice();
 		int minQty = Math.min(currOrder.getOrderQty(), nextOrder.getOrderQty());
 		rp1.setOrderQty(minQty);
 		

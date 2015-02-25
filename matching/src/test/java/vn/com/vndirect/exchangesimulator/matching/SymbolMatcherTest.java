@@ -18,7 +18,7 @@ public class SymbolMatcherTest {
 	@Before
 	public void setUp() {
 		orderPriceIndex = new OrderPriceIndex();
-		sm = new ContinuousSessionMatcher("VND", new PriceRange(16000, 16300, 100), new OrderMatcher(new ContinuousReport()), orderPriceIndex);
+		sm = new ContinuousSessionMatcher("VND", new PriceRange(9000, 16300, 100), new OrderMatcher(new ContinuousReport()), orderPriceIndex);
 	}
 
 	@Test
@@ -76,6 +76,16 @@ public class SymbolMatcherTest {
 		sm.push(sellOrderSingle);
 		List<ExecutionReport> rps = sm.getLastMatches();
 		Assert.assertEquals(4, rps.size());
+	}
+	
+	@Test
+	public void testMatchPartialSingleOrderAndCheckBestPrice() {
+		sm.push(OrderFactory.createLOSell(300, 10000));
+		sm.push(OrderFactory.createLOBuy(500, 10200));
+		List<ExecutionReport> rps = sm.getLastMatches();
+		Assert.assertEquals(2, rps.size());
+		Assert.assertEquals(10000, rps.get(0).getLastPx(), 0);
+		
 	}
 
 }
