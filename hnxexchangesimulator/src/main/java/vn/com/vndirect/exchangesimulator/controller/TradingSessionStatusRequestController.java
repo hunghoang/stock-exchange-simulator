@@ -26,6 +26,9 @@ public class TradingSessionStatusRequestController extends GatewayMessageControl
 	@Override
 	protected TradingSessionStatus process(TradingSessionStatusRequest message) {
 		Integer lastProccessedSeq = (Integer) memory.get("last_processed_sequence", message.getSenderCompID());
+		if (lastProccessedSeq == null) {
+			lastProccessedSeq = 0;
+		}
 		memory.put("last_processed_sequence", message.getSenderCompID(), ++lastProccessedSeq);
 		TradingSessionStatus tradingSessionStatus = tradingSessionStatusManager.getCurrentSession();
 		tradingSessionStatus.setTargetCompID(message.getSenderCompID());

@@ -15,7 +15,7 @@ import vn.com.vndirect.exchangesimulator.marketinfogenerator.TradingSessionStatu
 import vn.com.vndirect.lib.commonlib.file.FileUtils;
 
 @Component
-public class Scheduler {
+public class SessionScheduler {
 	
 	private Timer timer;
 	
@@ -23,7 +23,7 @@ public class Scheduler {
 	private TradingSessionStatusManager tradingSessionStatusManager;
 	
 	private Properties properties;
-	public Scheduler() throws IOException {
+	public SessionScheduler() throws IOException {
     	timer = new Timer();
     	properties = new Properties();
     	properties.load(FileUtils.getInputStream("timeconfig.properties"));
@@ -34,6 +34,10 @@ public class Scheduler {
 	}
 	
 	@PostConstruct
+	public void initSessionFromPreOpen() throws ParseException{
+		timer.schedule(new RemindPreOpenTask(), 15000l);
+	}
+	
 	public void init() throws ParseException{
 		initPreOpen();
 		initOpenAM();
