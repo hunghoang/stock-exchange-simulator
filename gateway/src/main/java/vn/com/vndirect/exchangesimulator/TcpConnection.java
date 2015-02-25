@@ -28,12 +28,11 @@ public class TcpConnection {
 
 	@Autowired
 	public TcpConnection(InMemory memory, TcpReceiver tcpReceiver) throws IOException {
-		log.info("Init tcp connection");
 		isActive = true;
 		this.memory = memory;
 		this.tcpReceiver = tcpReceiver;
 		properties = new Properties();
-		properties.load(FileUtils.getInputStream("config/client.properties"));
+		properties.load(FileUtils.getInputStream("config/server.properties"));
 		server = new ServerSocket(6666);
 	}
 
@@ -46,25 +45,25 @@ public class TcpConnection {
 					while (isActive) {
 						Socket socket = server.accept();
 						String remoteIp = socket.getInetAddress().getHostAddress();
-						log.info("Accepting connection from: " + remoteIp);
+						log.info("Accepting connection from: " + remoteIp);	
 						tcpReceiver.addSocket(socket);
 						acceptSocket(remoteIp, socket);
 					}
 				} catch (IOException e) {
 					log.error("Error when waiting connection", e);
 				}
-
 			};
 		}.start();
 	}
 
 	public void acceptSocket(String remoteIp, Socket socket) {
 		String userId = (String) properties.get(remoteIp);
-		log.info("Accept socket " + userId);
-		memory.put("SocketClient", userId, new SocketClient(socket, userId));
-		memory.put("sequence", userId, 0);
-		memory.put("last_processed_sequence", userId, 0);
-
+		if (userId != null) {
+			log.info("Accept socket " + userId);
+			memory.put("SocketClient", userId, new SocketClient(socket, userId));
+			memory.put("sequence", userId, 0);
+			memory.put("last_processed_sequence", userId, 0);
+		}
 	}
 
 }
