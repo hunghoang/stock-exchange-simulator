@@ -56,13 +56,16 @@ public class TcpConnection {
 		}.start();
 	}
 
-	public void acceptSocket(String remoteIp, Socket socket) {
+	public void acceptSocket(String remoteIp, Socket socket) throws IOException {
 		String userId = (String) properties.get(remoteIp);
 		if (userId != null) {
 			log.info("Accept socket " + userId);
 			memory.put("SocketClient", userId, new SocketClient(socket, userId));
 			memory.put("sequence", userId, 0);
 			memory.put("last_processed_sequence", userId, 0);
+		} else {
+			log.error("User not found: " + userId + " with ip:" + remoteIp + " - check config/server.properties file");
+			socket.close();
 		}
 	}
 
