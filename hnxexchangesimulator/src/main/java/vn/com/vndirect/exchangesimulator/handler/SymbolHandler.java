@@ -57,7 +57,6 @@ public class SymbolHandler implements QueueListener {
 	}
 
 	private void preProcessor(Object order, String type) {
-		LOGGER.info("pre process order: " + order + " with type: " + type);
 		Processor preProcessor = getPreProcessor(type);
 		List<ExecutionReport> reports = preProcessor.process((HnxMessage) order);
 		updateQueueout(reports);

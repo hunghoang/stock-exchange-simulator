@@ -33,7 +33,6 @@ public class LogonController extends GatewayMessageController<Logon, Logon> {
 	protected Logon process(Logon messageIn) {
 		Logon acceptLogon = generateAcceptLogon(messageIn);
 		String userId = messageIn.getSenderCompID();
-		log.info("Accept logon for user: " + userId);
 		addSocketClient(userId);
 		return acceptLogon;
 	}
@@ -48,13 +47,18 @@ public class LogonController extends GatewayMessageController<Logon, Logon> {
 
 	private void addSocketClient(String userId) {
 		SocketClient client = (SocketClient) memory.get("SocketClient", userId);
-		Object clients = memory.get("SocketClientList", "");
-		if (clients == null) {
-			clients = new ArrayList<SocketClient>();
-			memory.put("SocketClientList", "", clients);
+		if (client != null) {
+			log.info("Accept logon for user: " + userId);
+			Object clients = memory.get("SocketClientList", "");
+			if (clients == null) {
+				clients = new ArrayList<SocketClient>();
+				memory.put("SocketClientList", "", clients);
+			}
+			((List<SocketClient>) clients).add(client);
+			client.setLogon(true);
+		} else {
+			log.error("User not found: " + userId);
 		}
-		((List<SocketClient>) clients).add(client);
-		client.setLogon(true);
 	}
 }
 
