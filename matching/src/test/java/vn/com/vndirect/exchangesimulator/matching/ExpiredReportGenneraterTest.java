@@ -8,7 +8,7 @@ import org.junit.Test;
 import vn.com.vndirect.exchangesimulator.model.ExecutionReport;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
 
-public class ExprireReportGenneraterTest {
+public class ExpiredReportGenneraterTest {
 	@Test
 	public void testGenenrateReport() {
 		ExpireReporter reporter = new ExpireReporter();

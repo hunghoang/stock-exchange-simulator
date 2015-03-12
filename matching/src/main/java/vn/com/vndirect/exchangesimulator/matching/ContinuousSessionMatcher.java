@@ -26,6 +26,8 @@ public class ContinuousSessionMatcher {
 		orders = OrderList.createList(symbol, priceRange.getStepCount());
 		rangeMatcherMap.put('2', new LORangeMatcher(priceRange, orders, orderPriceIndex, orderMatcher));
 		rangeMatcherMap.put('T', new MTLRangeMatcher(priceRange, orders, orderPriceIndex, orderMatcher));
+		rangeMatcherMap.put('K', new MOKRangeMatcher(priceRange, orders, orderPriceIndex, orderMatcher));
+		rangeMatcherMap.put('A', new MAKRangeMatcher(priceRange, orders, orderPriceIndex, orderMatcher));
 	}
 
 	public void registMatcher(Character ordType, RangeMatcher matcher) {

@@ -1,11 +1,13 @@
 package vn.com.vndirect.exchangesimulator.matching;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import vn.com.vndirect.exchangesimulator.matching.index.OrderPriceIndex;
+import vn.com.vndirect.exchangesimulator.model.ExecType;
 import vn.com.vndirect.exchangesimulator.model.ExecutionReport;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
+import vn.com.vndirect.exchangesimulator.model.OrdStatus;
 import vn.com.vndirect.exchangesimulator.processor.PendingNewReportGenerator;
 
 public class MTLRangeMatcher extends RangeMatcher {
@@ -23,16 +25,16 @@ public class MTLRangeMatcher extends RangeMatcher {
 
 	@Override
 	protected boolean hasNoMatch(NewOrderSingle order) {
-		return hasNoOrderSellForMTLBuy(order) || hasNoOrderBuyForMTLSell(order);		
+		return hasNoOrderSellMatchOrderBuy(order) || hasNoOrderBuyForMatchOrderSell(order);		
 	}
 
 
-	private boolean hasNoOrderBuyForMTLSell(NewOrderSingle order) {
+	private boolean hasNoOrderBuyForMatchOrderSell(NewOrderSingle order) {
 		return order.getSide() == NewOrderSingle.SELL && orderPriceIndex.getBestBuyIndex(orders) == -1;
 	}
 
 
-	private boolean hasNoOrderSellForMTLBuy(NewOrderSingle order) {
+	private boolean hasNoOrderSellMatchOrderBuy(NewOrderSingle order) {
 		return order.getSide() == NewOrderSingle.BUY && orderPriceIndex.getBestSellIndex(orders) == orders.length;
 	}
 
@@ -56,22 +58,30 @@ public class MTLRangeMatcher extends RangeMatcher {
 
 	@Override
 	protected List<ExecutionReport> processOrderIfNoMatch(NewOrderSingle order) {
+		ExecutionReport report = PendingNewReportGenerator.report(order);
+		report.setOrdStatus(OrdStatus.REJECT);
+		report.setExecType(ExecType.REJECT);
+		report.setUnderlyingLastQty(order.getOrderQty());
 		order.setOrderQty(0);
-		// TODO: GENERATE CANCEL MTL REPORT
-		return new ArrayList<ExecutionReport>();
+		return Arrays.asList(report);
 	}
 
 	@Override
 	protected void processOrderAfterMatching(NewOrderSingle order, List<ExecutionReport> reports) {
 		if (order.getOrderQty() > 0) {
 			order.setOrdType('2');
-			double matchingPrice = reports.get(0).getPrice();
+			double matchingPrice = reports.get(reports.size() - 1).getPrice();
 			if (order.getSide() == NewOrderSingle.BUY) {
-				order.setPrice(matchingPrice - priceRange.getPriceStep());
-			} else {
 				order.setPrice(matchingPrice + priceRange.getPriceStep());
+			} else {
+				order.setPrice(matchingPrice - priceRange.getPriceStep());
 			}
-			reports.add(PendingNewReportGenerator.report(order));
+			ExecutionReport report = PendingNewReportGenerator.report(order);
+			report.setOrdStatus('M');
+			reports.add(report);
+	
+			int index = priceRange.priceToIndex(order.getPrice());
+			orders[index].add(order);
 		}
 		
 	}
