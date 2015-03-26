@@ -17,7 +17,11 @@ public class OrderTypeValidatorImpl implements OrderTypeValidator {
 					ValidateCode.INVALID_ORDER_TYPE.message());
 		}
 
-		if (ordType != OrderType.LO.orderType() && ordType != OrderType.ATC.orderType()) {
+		if (ordType != OrderType.LO.orderType()
+				&& ordType != OrderType.ATC.orderType()
+				&& ordType != OrderType.MOK.orderType()
+				&& ordType != OrderType.MAK.orderType()
+				&& ordType != OrderType.MTL.orderType()) {
 			throw new ValidateException(ValidateCode.INVALID_ORDER_TYPE.code(),
 					ValidateCode.INVALID_ORDER_TYPE.message());
 		}

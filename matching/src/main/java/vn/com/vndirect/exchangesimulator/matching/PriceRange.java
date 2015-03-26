@@ -10,14 +10,14 @@ public class PriceRange {
 
 	public PriceRange(int floorPrice, int ceilingPrice, int priceStep) {
 		this.stepCount = (ceilingPrice - floorPrice) / priceStep + 1;
-		this.floor = floorPrice;
-		this.ceil = ceilingPrice;
+		this.setFloor(floorPrice);
+		this.setCeil(ceilingPrice);
 		this.priceStep = priceStep;
 	}
 	
 	private void validatePrice(int price){
-		if(price < floor || price > ceil){
-			throw new ArrayIndexOutOfBoundsException("Price must be inside floor & ceil: " + price + " should be inside: " + floor + " " + ceil);
+		if(price < getFloor() || price > getCeil()){
+			throw new ArrayIndexOutOfBoundsException("Price must be inside floor & ceil: " + price + " should be inside: " + getFloor() + " " + getCeil());
 		}
 	}
 
@@ -31,15 +31,31 @@ public class PriceRange {
 	
 	public int priceToIndex(int price){
 		validatePrice(price);
-		int index = (price - floor) / priceStep;
+		int index = (price - getFloor()) / priceStep;
 		return index;
 	}
 
 	public int indexToPrice(int index) {
-		return floor + index * priceStep;
+		return getFloor() + index * priceStep;
 	}
 
 	public int getPriceStep() {
 		return priceStep;
+	}
+
+	public int getFloor() {
+		return floor;
+	}
+
+	public void setFloor(int floor) {
+		this.floor = floor;
+	}
+
+	public int getCeil() {
+		return ceil;
+	}
+
+	public void setCeil(int ceil) {
+		this.ceil = ceil;
 	}
 }

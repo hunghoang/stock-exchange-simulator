@@ -14,7 +14,7 @@
         <module>datastorage</module>
 		<module>fixconverter</module>
 		<module>marketinfogenerator</module>
-		<!--module>validator</module-->
+		<module>validator</module>
 		<module>matching</module>
 		<module>gateway</module>
 		<module>monitor</module>

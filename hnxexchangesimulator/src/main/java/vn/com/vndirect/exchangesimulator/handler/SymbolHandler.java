@@ -12,6 +12,7 @@ import vn.com.vndirect.exchangesimulator.matching.Matcher;
 import vn.com.vndirect.exchangesimulator.model.ExecutionReport;
 import vn.com.vndirect.exchangesimulator.model.HnxMessage;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
+import vn.com.vndirect.exchangesimulator.model.OrdStatus;
 import vn.com.vndirect.exchangesimulator.model.OrderCancelRequest;
 import vn.com.vndirect.exchangesimulator.model.OrderReplaceRequest;
 import vn.com.vndirect.exchangesimulator.processor.CancelOrderProcessor;
@@ -20,6 +21,7 @@ import vn.com.vndirect.exchangesimulator.processor.NullProcessor;
 import vn.com.vndirect.exchangesimulator.processor.PendingNewOrderProcessor;
 import vn.com.vndirect.exchangesimulator.processor.Processor;
 import vn.com.vndirect.exchangesimulator.processor.ReplaceOrderProcessor;
+import vn.com.vndirect.exchangesimulator.validator.NewOrderSingleValidator;
 
 public class SymbolHandler implements QueueListener {
  
@@ -37,31 +39,40 @@ public class SymbolHandler implements QueueListener {
 	
 	private final Processor nullProcessor = new NullProcessor();
 	
-	public SymbolHandler(ExecutionReportQueue queueOut, Matcher matcher, String symbol) {
+	public SymbolHandler(ExecutionReportQueue queueOut, Matcher matcher, String symbol, NewOrderSingleValidator validator) {
 		this.queueOut = queueOut;
 		Storage<NewOrderSingle> orderStorage = StorageFactory.getStore(symbol);
 		
 		this.cancelOrderProcessor = new CancelOrderProcessor(orderStorage, matcher); 
 		this.orderProcessor = new NewOrderProcessor(orderStorage, matcher);
-		this.replaceOrderProcessor = new ReplaceOrderProcessor(orderStorage, matcher);
-		this.pendingNewOrderProcessor = new PendingNewOrderProcessor(orderStorage);
+		this.replaceOrderProcessor = new ReplaceOrderProcessor(orderStorage, matcher, validator);
+		this.pendingNewOrderProcessor = new PendingNewOrderProcessor(orderStorage, validator);
 	}
 
 	@Override
 	public void onEvent(Object order) {
-		String type = getType(order);
-		
-		preProcessor(order, type);
-		
-		matchingProcessor(order, type);
+		try {
+			String type = getType(order);
+			preProcessor(order, type);
+			matchingProcessor(order, type);
+		} catch (Exception e) {
+			LOGGER.error("Error", e);
+		}
 	}
 
 	private void preProcessor(Object order, String type) {
 		Processor preProcessor = getPreProcessor(type);
 		List<ExecutionReport> reports = preProcessor.process((HnxMessage) order);
 		updateQueueout(reports);
+		if (isReject(reports)) {
+			throw new RuntimeException("Order is rejected");
+		}
 	}
 	
+	private boolean isReject(List<ExecutionReport> reports) {
+		return reports.size() > 0 && reports.get(0).getOrdStatus() == OrdStatus.REJECT;
+	}
+
 	private void matchingProcessor(Object order, String type) {
 		Processor processor = getProcessor(type);
 		List<ExecutionReport> reports = processor.process((HnxMessage) order);

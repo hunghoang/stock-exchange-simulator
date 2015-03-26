@@ -72,9 +72,17 @@ public class MTLRangeMatcher extends RangeMatcher {
 			order.setOrdType('2');
 			double matchingPrice = reports.get(reports.size() - 1).getPrice();
 			if (order.getSide() == NewOrderSingle.BUY) {
-				order.setPrice(matchingPrice + priceRange.getPriceStep());
+				if (matchingPrice < priceRange.getCeil()) {
+					order.setPrice(matchingPrice + priceRange.getPriceStep());
+				} else {
+					order.setPrice(priceRange.getCeil());
+				}
 			} else {
-				order.setPrice(matchingPrice - priceRange.getPriceStep());
+				if (matchingPrice > priceRange.getFloor()) {
+					order.setPrice(matchingPrice - priceRange.getPriceStep());
+				} else {
+					order.setPrice(priceRange.getFloor());
+				}
 			}
 			ExecutionReport report = PendingNewReportGenerator.report(order);
 			report.setOrdStatus('M');

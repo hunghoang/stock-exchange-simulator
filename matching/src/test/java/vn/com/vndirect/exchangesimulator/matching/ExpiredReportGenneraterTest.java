@@ -5,8 +5,10 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
+import vn.com.vndirect.exchangesimulator.model.ExecType;
 import vn.com.vndirect.exchangesimulator.model.ExecutionReport;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
+import vn.com.vndirect.exchangesimulator.model.OrdStatus;
 
 public class ExpiredReportGenneraterTest {
 	@Test
@@ -22,7 +24,9 @@ public class ExpiredReportGenneraterTest {
 		orders.add(order3);
 		List<ExecutionReport> reports = reporter.generateReport(orders);
 		Assert.assertEquals(2, reports.size());
-		Assert.assertEquals('C', reports.get(0).getOrdStatus());
+		Assert.assertEquals(OrdStatus.REJECT, reports.get(0).getOrdStatus());
+		Assert.assertEquals("4", reports.get(0).getOrdRejReason());
+		Assert.assertEquals(ExecType.REJECT, reports.get(0).getExecType());
 		
 	}
 	

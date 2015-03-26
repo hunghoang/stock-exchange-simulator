@@ -70,6 +70,8 @@ public class CancelOrderProcessor implements Processor {
 		executionReport.setTargetCompID(request.getSenderCompID());
 		executionReport.setClOrdID(request.getClOrdID());
 		executionReport.setOrigClOrdID(request.getClOrdID());
+		executionReport.setMsgType("3");
+		executionReport.setRefSeqNum(request.getMsgSeqNum());
 		executionReport.setExecType(ExecType.REJECT);
 		executionReport.setOrdRejReason("5");
 		executionReport.setOrdStatus(OrdStatus.REJECT);

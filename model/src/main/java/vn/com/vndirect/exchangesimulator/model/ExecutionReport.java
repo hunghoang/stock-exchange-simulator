@@ -4,6 +4,7 @@ import java.util.Date;
 
 public class ExecutionReport extends HnxMessage{
 	private String text;
+	private String refMsgType;
 	private Character execType;
 	private Boolean possDupFlag;
 	private Character ordStatus;
@@ -26,6 +27,8 @@ public class ExecutionReport extends HnxMessage{
 	private String execID;
 	private String ordRejReason;
 	private Double underlyingLastQty;
+	private int refSeqNum;
+	private String sessionRejectReason;
 	
 	public ExecutionReport() {
 		setMsgType("8");
@@ -195,6 +198,30 @@ public class ExecutionReport extends HnxMessage{
 				+ ", secondaryClOrdID=" + secondaryClOrdID + ", execID="
 				+ execID + ", ordRejReason=" + ordRejReason
 				+ ", underlyingLastQty=" + underlyingLastQty + "]";
+	}
+
+	public String getRefMsgType() {
+		return refMsgType;
+	}
+
+	public void setRefMsgType(String refMsgType) {
+		this.refMsgType = refMsgType;
+	}
+
+	public int getRefSeqNum() {
+		return refSeqNum;
+	}
+
+	public void setRefSeqNum(int refSeqNum) {
+		this.refSeqNum = refSeqNum;
+	}
+
+	public String getSessionRejectReason() {
+		return sessionRejectReason;
+	}
+
+	public void setSessionRejectReason(String sessionRejectReason) {
+		this.sessionRejectReason = sessionRejectReason;
 	}
 	
 }

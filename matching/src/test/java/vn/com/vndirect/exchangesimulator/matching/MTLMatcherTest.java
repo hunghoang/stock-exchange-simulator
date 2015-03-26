@@ -16,9 +16,15 @@ public class MTLMatcherTest {
 	
 	private ContinuousSessionMatcher sm;
 	
+	private PriceRange priceRange;
+	
+	private int floorPrice = 10000;
+	private int ceilingPrice = 16300;
+
 	@Before
 	public void setup() {
-		sm = new ContinuousSessionMatcher("VND", new PriceRange(10000, 16300, 100), new OrderMatcher(new ContinuousReport()), new OrderPriceIndex());
+		priceRange = new PriceRange(10000, 16300, 100);
+		sm = new ContinuousSessionMatcher("VND", priceRange, new OrderMatcher(new ContinuousReport()), new OrderPriceIndex());
 	}
 
 	@Test
@@ -171,6 +177,19 @@ public class MTLMatcherTest {
 		verifyReportFillReport(reports.get(2), '2', 2000, 13500);
 		verifyReportFillReport(reports.get(3), '2', 2000, 13500);
 		verifyReportLOReport(reports.get(4), 'M', 4000, 13600);
+	}
+
+	@Test
+	public void testGivenMTLBuyWithLOSellWhenMTLQuantityIsBiggerAndLOPriceIsCeilingPrice() {
+		NewOrderSingle order2 = OrderFactory.createLOSell("VND", 2000, ceilingPrice);
+		sm.push(order2);
+		NewOrderSingle mtlOrder = OrderFactory.createMTLBuy("VND", 7000);
+		sm.push(mtlOrder);
+		List<ExecutionReport> reports = sm.getLastMatches();
+		Assert.assertEquals(3, reports.size());
+		verifyReportFillReport(reports.get(0), '2', 2000, ceilingPrice);
+		verifyReportFillReport(reports.get(1), '2', 2000, ceilingPrice);
+		verifyReportLOReport(reports.get(2), 'M', 5000, ceilingPrice);
 	}
 
 	@Test

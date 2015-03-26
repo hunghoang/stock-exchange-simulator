@@ -1,9 +1,14 @@
 package vn.com.vndirect.exchangesimulator.monitor;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class MonitorService {
+	
+
+	@Autowired
+	private SessionManagerService sessionManager;
 	
 	public String buildMonitorContent() {
 		StringBuilder strBuilder = new StringBuilder();
@@ -53,14 +58,18 @@ public class MonitorService {
 
 	private String buildHeader() {
 		StringBuilder headerBuilder = new StringBuilder();
-		headerBuilder.append("<heade>");
+		headerBuilder.append("<header>");
 		headerBuilder.append("<title>Exchange Simulator Monitor</title>");
-		headerBuilder.append("</heade>");
+		headerBuilder.append("</header>");
 		return headerBuilder.toString();
 	}
 	
 	private String builderData() {
 		StringBuilder strBuilder = new StringBuilder();
+		strBuilder.append("<b>");
+		strBuilder.append("Current Session: " + sessionManager.getCurrentSession());
+		strBuilder.append("</b>");
+		strBuilder.append("<br>");
 		strBuilder.append("<b>");
 		strBuilder.append("Set Session: ");
 		strBuilder.append("</b>");
@@ -72,6 +81,7 @@ public class MonitorService {
 		strBuilder.append("<input type='button' value='CloseBL' onclick=\"if(confirm('Are you sure you want to set Close BL Session?')) window.location.href='monitor?session=closebl'\">");
 		strBuilder.append("<input type='button' value='PT' onclick=\"if(confirm('Are you sure you want to set PT Session?')) window.location.href='monitor?session=pt'\">");
 		strBuilder.append("<input type='button' value='EndOfDay' onclick=\"if(confirm('Are you sure you want to set End of Day Session?')) window.location.href='monitor?session=endofday'\">");
+		strBuilder.append("<br>");
 		strBuilder.append("<br><form action='monitor'>Message: <textarea name='fixmsg'></textarea><br><input type='submit' value='Send To CTCK'></form>");
 		return strBuilder.toString();
 	}

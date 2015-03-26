@@ -122,6 +122,7 @@ public class CancelOrderProcessorTest {
 
 	private OrderCancelRequest createCancelRequest() {
 		OrderCancelRequest request = new OrderCancelRequest();
+		request.setMsgSeqNum(1);
 		request.setClOrdID("orderid");
 		request.setOrigClOrdID("orderid");
 		request.setSymbol("VND");

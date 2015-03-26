@@ -14,6 +14,7 @@ import vn.com.vndirect.exchangesimulator.matching.Matcher;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
 import vn.com.vndirect.exchangesimulator.model.OrderCancelRequest;
 import vn.com.vndirect.exchangesimulator.model.OrderReplaceRequest;
+import vn.com.vndirect.exchangesimulator.validator.NewOrderSingleValidator;
 
 @Component
 public class SymbolRouter implements QueueListener {
@@ -28,12 +29,15 @@ public class SymbolRouter implements QueueListener {
 	
 	private Matcher matcher;
 	
+	private NewOrderSingleValidator validator;
+	
 	@Autowired
-	public SymbolRouter(OrderQueue queueIn, OrderQueueOfStockGenerator queueGenerator, ExecutionReportQueue queueOut, Matcher matcher) {
+	public SymbolRouter(OrderQueue queueIn, OrderQueueOfStockGenerator queueGenerator, ExecutionReportQueue queueOut, Matcher matcher, NewOrderSingleValidator validator) {
 		this.queueIn = queueIn;
 		this.queueGenerator = queueGenerator;
 		this.queueOut = queueOut;
 		this.matcher = matcher;
+		this.validator = validator;
 		this.queueIn.addListener(this);
 	}
 
@@ -71,7 +75,7 @@ public class SymbolRouter implements QueueListener {
 	private OrderQueue getQueue(String symbol) {
 		OrderQueue queue = queueGenerator.getQueueByStock(symbol);
 		if (queue == null) {
-			queue = queueGenerator.createQueueOfStockWithListener(symbol, new SymbolHandler(queueOut, matcher, symbol));
+			queue = queueGenerator.createQueueOfStockWithListener(symbol, new SymbolHandler(queueOut, matcher, symbol, validator));
 		}
 		return queue;
 	}

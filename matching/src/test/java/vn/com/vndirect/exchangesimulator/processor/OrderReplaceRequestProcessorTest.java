@@ -2,6 +2,10 @@ package vn.com.vndirect.exchangesimulator.processor;
 
 import java.util.List;
 
+import javafx.beans.binding.When;
+
+import javax.mail.internet.NewsAddress;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,6 +16,8 @@ import vn.com.vndirect.exchangesimulator.matching.Matcher;
 import vn.com.vndirect.exchangesimulator.model.ExecutionReport;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
 import vn.com.vndirect.exchangesimulator.model.OrderReplaceRequest;
+import vn.com.vndirect.exchangesimulator.validator.NewOrderSingleValidator;
+import vn.com.vndirect.exchangesimulator.validator.PriceValidator;
 
 public class OrderReplaceRequestProcessorTest {
 	
@@ -25,7 +31,9 @@ public class OrderReplaceRequestProcessorTest {
 	public void setUp() {
 		storage = new OrderStorage();
 		matcher = Mockito.mock(Matcher.class);
-		replaceOrderProcessor = new ReplaceOrderProcessor(storage, matcher);
+		NewOrderSingleValidator validator = Mockito.mock(NewOrderSingleValidator.class);
+		Mockito.when(validator.getPriceValidator()).thenReturn(Mockito.mock(PriceValidator.class));
+		replaceOrderProcessor = new ReplaceOrderProcessor(storage, matcher, validator);
 	}
 	
 	@Test
@@ -503,6 +511,7 @@ public class OrderReplaceRequestProcessorTest {
 	
 	private OrderReplaceRequest createReplaceRequest() {
 		OrderReplaceRequest request = new OrderReplaceRequest();
+		request.setMsgSeqNum(1);
 		request.setClOrdID("orderid");
 		request.setOrigClOrdID("orderid012");
 		request.setSymbol("VND");

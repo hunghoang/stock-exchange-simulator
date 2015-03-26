@@ -12,16 +12,22 @@ import vn.com.vndirect.exchangesimulator.model.HnxMessage;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
 import vn.com.vndirect.exchangesimulator.model.OrdStatus;
 import vn.com.vndirect.exchangesimulator.model.OrderReplaceRequest;
+import vn.com.vndirect.exchangesimulator.validator.NewOrderSingleValidator;
+import vn.com.vndirect.exchangesimulator.validator.PriceValidator;
+import vn.com.vndirect.exchangesimulator.validator.exception.ValidateException;
 
 public class ReplaceOrderProcessor implements Processor {
 
 	private Storage<NewOrderSingle> storage;
 
 	private Matcher matcher;
+	
+	private NewOrderSingleValidator validator;
 
-	public ReplaceOrderProcessor(Storage<NewOrderSingle> orderStorage, Matcher matcher) {
+	public ReplaceOrderProcessor(Storage<NewOrderSingle> orderStorage, Matcher matcher, NewOrderSingleValidator validator) {
 		this.storage = orderStorage;
 		this.matcher = matcher;
+		this.validator = validator;
 	}
 
 	@Override
@@ -29,8 +35,12 @@ public class ReplaceOrderProcessor implements Processor {
 		List<ExecutionReport> reports = new ArrayList<>();
 		OrderReplaceRequest request = (OrderReplaceRequest) message;
 		NewOrderSingle origOrder = storage.get(request.getOrigClOrdID());
-		if (!validate(request, origOrder)) {
-			return buildRejectReport(request, origOrder);
+		try {
+			if (!validate(request, origOrder)) {
+				return buildRejectReport(request, origOrder, new ValidateException("","Order is rejected"));
+			}
+		} catch (ValidateException e) {
+			return buildRejectReport(request, origOrder, e);
 		}
 
 		ExecutionReport report = buildReplacedExecutionReport(request, origOrder);
@@ -119,14 +129,16 @@ public class ReplaceOrderProcessor implements Processor {
 		return originOrderQty;
 	}
 
-	private List<ExecutionReport> buildRejectReport(OrderReplaceRequest request, NewOrderSingle originOrder) {
+	private List<ExecutionReport> buildRejectReport(OrderReplaceRequest request, NewOrderSingle originOrder, ValidateException e) {
 		ExecutionReport report = new ExecutionReport();
 		report.setTargetCompID(request.getSenderCompID());
 		report.setClOrdID(request.getClOrdID());
 		report.setOrigClOrdID(request.getClOrdID());
-		report.setExecType('8');
+		report.setMsgType("3");
+		report.setExecType(ExecType.REJECT);
 		report.setOrdRejReason("5");
-		report.setOrdStatus('8');
+		report.setOrdStatus(OrdStatus.REJECT);
+		report.setRefSeqNum(request.getMsgSeqNum());
 		report.setLastPx(request.getPrice());
 		report.setSymbol(request.getSymbol());
 		if (originOrder == null) {
@@ -134,8 +146,10 @@ public class ReplaceOrderProcessor implements Processor {
 		} else {
 			report.setOrdType(originOrder.getOrdType());
 			report.setSide(originOrder.getSide());
-			report.setText("order is rejected");
+			report.setText(e.getMessage());
+			report.setSessionRejectReason(e.getCode());
 		}
+		report.setRefMsgType(request.getMsgType());
 		report.setOrderID(request.getClOrdID());
 		report.setUnderlyingLastQty(0);
 
@@ -143,7 +157,7 @@ public class ReplaceOrderProcessor implements Processor {
 	}
 
 	private boolean validate(OrderReplaceRequest request,
-			NewOrderSingle origOrder) {
+			NewOrderSingle origOrder) throws ValidateException {
 		if (origOrder == null || origOrder.getOrderQty() == 0) {
 			return false;
 		}
@@ -151,6 +165,9 @@ public class ReplaceOrderProcessor implements Processor {
 		if (isReplaceWithExpectedDecreasingQuantityBiggerThanCurrentQuantity(request.getOrderQty(), request.getCashOrderQty(), origOrder.getOrderQty())) {
 			return false;
 		}
+		
+		PriceValidator priceValidator = validator.getPriceValidator();
+		priceValidator.validate(request.getSymbol(), request.getPrice());
 		return true;
 	}
 

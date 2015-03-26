@@ -259,7 +259,7 @@ public class NewOrderSingle extends HnxMessage{
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("accountNumber = ");
+		sb.append("account = ");
 		sb.append(account);
 		sb.append(" * ");
 		
@@ -281,6 +281,10 @@ public class NewOrderSingle extends HnxMessage{
 		
 		sb.append("side = ");
 		sb.append(side);
+		sb.append(" * ");
+		
+		sb.append("ordType = ");
+		sb.append(ordType);
 		
 		return sb.toString();
 	}

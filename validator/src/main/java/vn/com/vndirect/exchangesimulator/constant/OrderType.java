@@ -1,7 +1,7 @@
 package vn.com.vndirect.exchangesimulator.constant;
 
 public enum OrderType {
-	LO('2'), ATC('5');
+	LO('2'), ATC('5'), MOK('K'), MAK('A'), MTL('T');
 
 	private char orderType;
 

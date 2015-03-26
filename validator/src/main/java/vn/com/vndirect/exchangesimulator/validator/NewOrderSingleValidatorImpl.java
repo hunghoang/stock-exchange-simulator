@@ -36,7 +36,6 @@ public class NewOrderSingleValidatorImpl implements NewOrderSingleValidator {
 	public void validate(NewOrderSingle order) throws ValidateException {
 		String symbol = order.getSymbol();
 		double price = order.getPrice();
-		int quantity = order.getOrderQty();
 		char ordType = order.getOrdType();
 		char side = order.getSide();
 		String account = order.getAccount();
@@ -45,8 +44,10 @@ public class NewOrderSingleValidatorImpl implements NewOrderSingleValidator {
 		orderTypeValidator.validate(ordType);
 		sideValidator.validate(side);
 		symbolValidator.validate(symbol);
-		quantityValidator.validate(quantity);
-		if(OrderType.ATC.orderType() != ordType) {
+		if (OrderType.ATC.orderType() != ordType
+				&& OrderType.MAK.orderType() != ordType
+				&& OrderType.MOK.orderType() != ordType
+				&& OrderType.MTL.orderType() != ordType) {
 			priceValidator.validate(symbol, price);
 		}
 		sessionValidator.validate(order);
@@ -56,4 +57,55 @@ public class NewOrderSingleValidatorImpl implements NewOrderSingleValidator {
 		this.sessionValidator = sessionValidator;
 	}
 
+	public SymbolValidator getSymbolValidator() {
+		return symbolValidator;
+	}
+
+	public void setSymbolValidator(SymbolValidator symbolValidator) {
+		this.symbolValidator = symbolValidator;
+	}
+
+	public PriceValidator getPriceValidator() {
+		return priceValidator;
+	}
+
+	public void setPriceValidator(PriceValidator priceValidator) {
+		this.priceValidator = priceValidator;
+	}
+
+	public QuantityValidator getQuantityValidator() {
+		return quantityValidator;
+	}
+
+	public void setQuantityValidator(QuantityValidator quantityValidator) {
+		this.quantityValidator = quantityValidator;
+	}
+
+	public OrderTypeValidator getOrderTypeValidator() {
+		return orderTypeValidator;
+	}
+
+	public void setOrderTypeValidator(OrderTypeValidator orderTypeValidator) {
+		this.orderTypeValidator = orderTypeValidator;
+	}
+
+	public SideValidator getSideValidator() {
+		return sideValidator;
+	}
+
+	public void setSideValidator(SideValidator sideValidator) {
+		this.sideValidator = sideValidator;
+	}
+
+	public AccountValidator getAccountValidator() {
+		return accountValidator;
+	}
+
+	public void setAccountValidator(AccountValidator accountValidator) {
+		this.accountValidator = accountValidator;
+	}
+
+	public SessionValidator getSessionValidator() {
+		return sessionValidator;
+	}
 }

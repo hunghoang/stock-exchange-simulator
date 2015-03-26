@@ -45,4 +45,17 @@ public class OrderTypeValidatorTest {
 	public void testOrderTypeIsLO() throws ValidateException {
 		validator.validate('2');
 	}
+
+	@Test
+	public void testOrderTypeIsMTL() throws ValidateException {
+		validator.validate('T');
+	}
+	@Test
+	public void testOrderTypeIsMOK() throws ValidateException {
+		validator.validate('K');
+	}
+	@Test
+	public void testOrderTypeIsMAK() throws ValidateException {
+		validator.validate('A');
+	}
 }

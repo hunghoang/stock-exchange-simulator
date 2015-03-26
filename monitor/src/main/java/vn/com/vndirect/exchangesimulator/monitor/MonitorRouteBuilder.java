@@ -2,6 +2,7 @@
 package vn.com.vndirect.exchangesimulator.monitor;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.annotation.PostConstruct;
 
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 import vn.com.vndirect.exchangesimulator.TcpSender;
 import vn.com.vndirect.exchangesimulator.datastorage.order.OrderStorageService;
 import vn.com.vndirect.exchangesimulator.fixconvertor.FixConvertor;
+import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
 
 @Component
 public class MonitorRouteBuilder extends RouteBuilder {
@@ -66,7 +68,23 @@ public class MonitorRouteBuilder extends RouteBuilder {
 			@Override	
 			public void process(Exchange exc) throws Exception {
 				exc.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
-				exc.getOut().setBody(orderStorageService.getAllOrder().toString());
+				 List<NewOrderSingle> allOrder = orderStorageService.getAllOrder();
+				 StringBuilder sb1 = new StringBuilder();
+				 StringBuilder sb2 = new StringBuilder();
+				 for (NewOrderSingle newOrderSingle : allOrder) {
+					 if (newOrderSingle.getSide() == '1') {
+						 sb1.append("<br>");
+						 sb1.append(newOrderSingle);
+					 } else {
+						 sb2.append("<br>");
+						 sb2.append(newOrderSingle);
+					 }
+					 
+				}
+				 String content = "<html>Buys: " + sb1.toString(); 
+				 content += "<br>"; 
+				content += "Sells: " + sb2.toString() + "</html>"; 
+				exc.getOut().setBody(content);
 			}
 			
 		});
