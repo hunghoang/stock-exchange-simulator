@@ -67,7 +67,9 @@ public class TradingSessionStatusController {
 	}
 
 	private void notifyCore(TradingSessionStatus tradingSessionStatus) {
-		if (TradSesStatus.ATC1.equals(tradingSessionStatus.getTradingSessionCode())) {
+		if (TradSesStatus.PREOPEN.equals(tradingSessionStatus.getTradingSessionCode())) {
+			matcher.reset();
+		} else if (TradSesStatus.ATC1.equals(tradingSessionStatus.getTradingSessionCode())) {
 			matcher.beginATC();
 		} else if (TradSesStatus.PTCLOSE.equals(tradingSessionStatus.getTradingSessionCode())) {
 			List<ExecutionReport> matchedExecutionReports = matcher.endATC();
