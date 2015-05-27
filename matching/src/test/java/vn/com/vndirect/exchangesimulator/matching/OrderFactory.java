@@ -15,6 +15,7 @@ public class OrderFactory {
 		order.setOrderQty(quantity);
 		order.setPrice((double)price);
 		order.setSenderCompID(UUID.randomUUID().toString());
+		order.setMsgSeqNum(1);
 		return order;
 	}
 	

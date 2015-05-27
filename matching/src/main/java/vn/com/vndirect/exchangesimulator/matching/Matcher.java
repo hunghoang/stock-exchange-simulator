@@ -51,6 +51,12 @@ public class Matcher {
 		return atcSessionAllOrderMatcher.processATC();
 	}
 	
+	public void reset() {
+		continuousSessionAllOrderMatcher.clear();
+		atcSessionAllOrderMatcher.clear();
+		isATC = false;
+	}
+	
 	public void beginATC() {
 		isATC = true;
 		pushAllOrderToATCMatcher();

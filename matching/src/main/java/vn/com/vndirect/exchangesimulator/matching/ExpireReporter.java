@@ -1,6 +1,7 @@
 package vn.com.vndirect.exchangesimulator.matching;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import vn.com.vndirect.exchangesimulator.model.ExecType;
@@ -27,6 +28,11 @@ public class ExpireReporter {
 		report.setExecType(ExecType.REJECT);
 		report.setUnderlyingLastQty(order.getOrderQty());
 		report.setOrdRejReason("4");
+		report.setRefSeqNum(order.getMsgSeqNum());
+		report.setOrdType(order.getOrdType());
+		report.setClOrdID(order.getClOrdID());
+		report.setTransactTime(new Date());
+		report.setSide(order.getSide());
 		report.setOrderID(order.getOrderId());
 		return report;
 	}

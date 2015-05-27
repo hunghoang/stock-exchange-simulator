@@ -28,7 +28,6 @@ public class ContinuousReport extends ReportGenerator {
 		
 		rp1.setOrdStatus(OrdStatus.FILL);
 		rp1.setPrice(price);
-		
 		rp1.setLastPx(price);
 		
 		if (!currOrder.getSenderCompID().equals(nextOrder.getSenderCompID())) {
@@ -45,11 +44,11 @@ public class ContinuousReport extends ReportGenerator {
 		return genList(rp1);
 	}
 
-	private String getBuyId(NewOrderSingle currOrder, NewOrderSingle nextOrder) {
+	protected String getBuyId(NewOrderSingle currOrder, NewOrderSingle nextOrder) {
 		return currOrder.getSide() == NewOrderSingle.BUY ? currOrder.getOrderId() : nextOrder.getOrderId();
 	}
 
-	private String getSellId(NewOrderSingle currOrder, NewOrderSingle nextOrder) {
+	protected String getSellId(NewOrderSingle currOrder, NewOrderSingle nextOrder) {
 		return currOrder.getSide() == NewOrderSingle.SELL ? currOrder.getOrderId() : nextOrder.getOrderId();
 	}
 

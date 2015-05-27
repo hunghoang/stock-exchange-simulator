@@ -14,6 +14,7 @@ import vn.com.vndirect.exchangesimulator.model.OrdStatus;
 import vn.com.vndirect.exchangesimulator.model.OrderReplaceRequest;
 import vn.com.vndirect.exchangesimulator.validator.NewOrderSingleValidator;
 import vn.com.vndirect.exchangesimulator.validator.PriceValidator;
+import vn.com.vndirect.exchangesimulator.validator.exception.ValidateCode;
 import vn.com.vndirect.exchangesimulator.validator.exception.ValidateException;
 
 public class ReplaceOrderProcessor implements Processor {
@@ -143,6 +144,7 @@ public class ReplaceOrderProcessor implements Processor {
 		report.setSymbol(request.getSymbol());
 		if (originOrder == null) {
 			report.setText("order is not existed or filled");
+			report.setSessionRejectReason(ValidateCode.UNKNOWN_ORDER.code());
 		} else {
 			report.setOrdType(originOrder.getOrdType());
 			report.setSide(originOrder.getSide());

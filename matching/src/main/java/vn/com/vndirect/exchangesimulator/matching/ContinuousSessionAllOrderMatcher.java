@@ -56,7 +56,7 @@ public class ContinuousSessionAllOrderMatcher {
 	}
 	
 	public void clear(){
-		matcherMap = new HashMap<String, ContinuousSessionMatcher>();
+		matcherMap.clear();;
 	}
 
 	public void setMemory(InMemory memory) {

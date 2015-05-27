@@ -34,7 +34,7 @@ public class ATCSessionAllOrderMatcher {
 	}
 
 	public void clear(){
-		matcherMap = new HashMap<String, ATCSessionMatcher>();
+		matcherMap.clear();
 	}
 
 	public List<ExecutionReport> processATC() {
