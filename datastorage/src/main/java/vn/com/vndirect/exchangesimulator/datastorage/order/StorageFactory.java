@@ -30,4 +30,7 @@ public class StorageFactory {
 		return stores;
 	}
 
+	public static void resetStorage() {
+		storeMap.clear();
+	}
 }
