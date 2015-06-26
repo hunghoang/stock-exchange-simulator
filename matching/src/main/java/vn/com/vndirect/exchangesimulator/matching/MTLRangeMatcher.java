@@ -3,6 +3,7 @@ package vn.com.vndirect.exchangesimulator.matching;
 import java.util.Arrays;
 import java.util.List;
 
+import vn.com.vndirect.exchangesimulator.constant.OrderType;
 import vn.com.vndirect.exchangesimulator.matching.index.OrderPriceIndex;
 import vn.com.vndirect.exchangesimulator.model.ExecType;
 import vn.com.vndirect.exchangesimulator.model.ExecutionReport;
@@ -69,7 +70,7 @@ public class MTLRangeMatcher extends RangeMatcher {
 	@Override
 	protected void processOrderAfterMatching(NewOrderSingle order, List<ExecutionReport> reports) {
 		if (order.getOrderQty() > 0) {
-			order.setOrdType('2');
+			order.setOrdType(OrderType.LO.orderType());
 			double matchingPrice = reports.get(reports.size() - 1).getPrice();
 			if (order.getSide() == NewOrderSingle.BUY) {
 				if (matchingPrice < priceRange.getCeil()) {

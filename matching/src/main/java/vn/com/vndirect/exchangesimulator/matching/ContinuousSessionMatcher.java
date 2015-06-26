@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import vn.com.vndirect.exchangesimulator.constant.OrderType;
 import vn.com.vndirect.exchangesimulator.matching.index.OrderPriceIndex;
 import vn.com.vndirect.exchangesimulator.model.ExecutionReport;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
@@ -24,10 +25,10 @@ public class ContinuousSessionMatcher {
 	public ContinuousSessionMatcher(String symbol, PriceRange priceRange, OrderMatcher orderMatcher, OrderPriceIndex orderPriceIndex) {
 		this.priceRange = priceRange;
 		orders = OrderList.createList(symbol, priceRange.getStepCount());
-		rangeMatcherMap.put('2', new LORangeMatcher(priceRange, orders, orderPriceIndex, orderMatcher));
-		rangeMatcherMap.put('T', new MTLRangeMatcher(priceRange, orders, orderPriceIndex, orderMatcher));
-		rangeMatcherMap.put('K', new MOKRangeMatcher(priceRange, orders, orderPriceIndex, orderMatcher));
-		rangeMatcherMap.put('A', new MAKRangeMatcher(priceRange, orders, orderPriceIndex, orderMatcher));
+		rangeMatcherMap.put(OrderType.LO.orderType(), new LORangeMatcher(priceRange, orders, orderPriceIndex, orderMatcher));
+		rangeMatcherMap.put(OrderType.MTL.orderType(), new MTLRangeMatcher(priceRange, orders, orderPriceIndex, orderMatcher));
+		rangeMatcherMap.put(OrderType.MOK.orderType(), new MOKRangeMatcher(priceRange, orders, orderPriceIndex, orderMatcher));
+		rangeMatcherMap.put(OrderType.MAK.orderType(), new MAKRangeMatcher(priceRange, orders, orderPriceIndex, orderMatcher));
 	}
 
 	public void registMatcher(Character ordType, RangeMatcher matcher) {
