@@ -54,6 +54,7 @@ public class Matcher {
 	public void reset() {
 		continuousSessionAllOrderMatcher.clear();
 		atcSessionAllOrderMatcher.clear();
+		orderStorageService.clearOrder();
 		isATC = false;
 	}
 	

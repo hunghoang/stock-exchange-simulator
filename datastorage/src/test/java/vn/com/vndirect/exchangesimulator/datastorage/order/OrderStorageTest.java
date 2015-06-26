@@ -95,9 +95,11 @@ public class OrderStorageTest {
 		Assert.assertTrue(0 == store.size());
 	}
 	
-	@Test public void sizeOfStorageIsNotZero() {
+	@Test
+	public void sizeOfStorageIsNotZero() {
 		NewOrderSingle order = OrderFactory.createNewOrder("VND", 1000, 12d);
 		store.add(order);
 		Assert.assertTrue(store.size() > 0);
 	}
+	
 }

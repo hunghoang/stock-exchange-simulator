@@ -19,6 +19,7 @@ public enum ValidateCode {
 	INVALID_PRICE_STEP("-17004", "Gia khong chia het cho buoc gia"),
 	INVALID_LOT("-17010", " Khoi luong khong chia het cho lo giao dich"),
 	NON_POSITIVE_QUANTITY("-17012", "Khoi luong phai lon hon 0"),
+	INVALID_QUANTITY("-17013", "Khoi luong vuot qua khoi luong cho phep"),
 	INVALID_EVEN_LOT("-17015", "Khoi luong giao dich lo chan phai lon hon hoac bang lo giao dich"),
 	REPLACE_FROM_EVEN_TO_ODD_NOT_SUPPORTED("-17024", "Khong cho phep sua tu lo chan sang lo le"), 
 	REPLACE_FROM_ODD_TO_EVEN_NOT_SUPPORTED("-17027", "Khong cho phep sua tu lo le sang lo chan"),

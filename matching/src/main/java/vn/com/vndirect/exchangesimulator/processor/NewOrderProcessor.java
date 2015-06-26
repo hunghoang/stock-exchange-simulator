@@ -3,6 +3,9 @@ package vn.com.vndirect.exchangesimulator.processor;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
+import vn.com.vndirect.exchangesimulator.datastorage.order.OrderStorageService;
 import vn.com.vndirect.exchangesimulator.datastorage.order.Storage;
 import vn.com.vndirect.exchangesimulator.matching.Matcher;
 import vn.com.vndirect.exchangesimulator.model.ExecutionReport;
@@ -15,6 +18,8 @@ public class NewOrderProcessor implements Processor {
 	
 	private Matcher matcher;
 	
+	private static final Logger log = Logger.getLogger(NewOrderProcessor.class);
+	
 	public NewOrderProcessor(Storage<NewOrderSingle> orderStorage, Matcher matcher) {
 		this.orderStorage = orderStorage;
 		this.matcher = matcher; 
@@ -25,11 +30,13 @@ public class NewOrderProcessor implements Processor {
 		List<ExecutionReport> executionReports = new ArrayList<ExecutionReport>();
 		NewOrderSingle newOrderSingle = (NewOrderSingle) message; 
 		storeOrder(newOrderSingle);
+		log.info("List Order size of " + newOrderSingle.getSymbol() + " " + orderStorage.size());
 		
 		List<ExecutionReport> matchedExecutionReports = matcher.push(newOrderSingle);
 		cleanFilledOrder(matchedExecutionReports);
 		executionReports.addAll(matchedExecutionReports);
-		
+		log.info("List Order size of " + newOrderSingle.getSymbol() + " " + orderStorage.size());
+		log.info("All order: " + new OrderStorageService().getAllOrder().size());
 		return executionReports;
 	}
 

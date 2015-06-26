@@ -87,6 +87,7 @@ public class ReplaceOrderProcessor implements Processor {
 		newOrderSingle.setSymbol(origOrder.getSymbol());
 		newOrderSingle.setClOrdID(request.getClOrdID());
 		newOrderSingle.setOrderId(origOrder.getOrderId());
+		newOrderSingle.setMsgSeqNum(request.getMsgSeqNum());
 		newOrderSingle.setSenderCompID(request.getSenderCompID());
 		newOrderSingle.setSide(origOrder.getSide());
 		newOrderSingle.setOrdType(origOrder.getOrdType());
@@ -165,7 +166,7 @@ public class ReplaceOrderProcessor implements Processor {
 		}
 
 		if (isReplaceWithExpectedDecreasingQuantityBiggerThanCurrentQuantity(request.getOrderQty(), request.getCashOrderQty(), origOrder.getOrderQty())) {
-			return false;
+			throw new ValidateException(ValidateCode.INVALID_QUANTITY.code(), ValidateCode.INVALID_QUANTITY.message());
 		}
 		
 		PriceValidator priceValidator = validator.getPriceValidator();

@@ -21,24 +21,28 @@ import vn.com.vndirect.exchangesimulator.model.TradingSessionStatus;
 
 @Component
 public class TradingSessionStatusController {
-	
-	private static final Logger log = Logger.getLogger(TradingSessionStatusController.class);
-	
+
+	private static final Logger log = Logger
+			.getLogger(TradingSessionStatusController.class);
+
 	private QueueOutService<HnxMessage> queueOutService;
 	private TradingSessionStatusManager tradingSessionStatusManager;
 	private InMemory memory;
 	private Matcher matcher;
 
 	protected boolean isActive;
-	
+
 	@Autowired
-	public TradingSessionStatusController(TradingSessionStatusRequestQueue tradingQueueIn, QueueOutService queueOutService, TradingSessionStatusManager tradingSessionStatusManager, InMemory memory, Matcher matcher) {
+	public TradingSessionStatusController(
+			TradingSessionStatusRequestQueue tradingQueueIn,
+			QueueOutService queueOutService,
+			TradingSessionStatusManager tradingSessionStatusManager,
+			InMemory memory, Matcher matcher) {
 		this.queueOutService = queueOutService;
 		this.memory = memory;
 		this.tradingSessionStatusManager = tradingSessionStatusManager;
 		this.matcher = matcher;
 	}
-	
 
 	@PostConstruct
 	public void start() {
@@ -46,53 +50,67 @@ public class TradingSessionStatusController {
 		new Thread() {
 			@Override
 			public void run() {
-				TradingSessionStatus tradingSessionStatus = tradingSessionStatusManager.getCurrentSession();
-				while (isActive) {
-					try {
-						if (tradingSessionStatus != tradingSessionStatusManager.getCurrentSession()) {
-							tradingSessionStatus = tradingSessionStatusManager.getCurrentSession();
-							notifyCore(tradingSessionStatus);	
-							notifyAllClient(tradingSessionStatus);	
-						} else {
-							Thread.sleep(1000);
+				try {
+					TradingSessionStatus tradingSessionStatus = tradingSessionStatusManager
+							.getCurrentSession();
+					while (isActive) {
+						try {
+							if (tradingSessionStatus != tradingSessionStatusManager
+									.getCurrentSession()) {
+								tradingSessionStatus = tradingSessionStatusManager
+										.getCurrentSession();
+								notifyCore(tradingSessionStatus);
+								notifyAllClient(tradingSessionStatus);
+							} else {
+								Thread.sleep(1000);
+							}
+						} catch (InterruptedException e) {
+							log.error(e.getMessage(), e);
 						}
-					} catch (InterruptedException e) {
-						log.error(e.getMessage(), e);
 					}
+				} catch (Exception e) {
+					log.error("Exception when change session", e);
 				}
 			}
-
 
 		}.start();
 	}
 
 	private void notifyCore(TradingSessionStatus tradingSessionStatus) {
-		if (TradSesStatus.PREOPEN.equals(tradingSessionStatus.getTradingSessionCode())) {
+		log.info("Current session is: "
+				+ tradingSessionStatus.getTradingSessionCode());
+		if (TradSesStatus.PREOPEN.equals(tradingSessionStatus
+				.getTradingSessionCode())) {
+			log.info("Reset all data when session is PREOPEN");
 			matcher.reset();
-		} else if (TradSesStatus.ATC1.equals(tradingSessionStatus.getTradingSessionCode())) {
+		} else if (TradSesStatus.ATC1.equals(tradingSessionStatus
+				.getTradingSessionCode())) {
 			matcher.beginATC();
-		} else if (TradSesStatus.PTCLOSE.equals(tradingSessionStatus.getTradingSessionCode())) {
+		} else if (TradSesStatus.PTCLOSE.equals(tradingSessionStatus
+				.getTradingSessionCode())) {
 			List<ExecutionReport> matchedExecutionReports = matcher.endATC();
-			for(ExecutionReport report : matchedExecutionReports) {
+			for (ExecutionReport report : matchedExecutionReports) {
 				queueOutService.add(report);
 			}
+			matcher.reset();
 		}
 	}
-	
+
 	private void notifyAllClient(TradingSessionStatus tradingSessionStatus) {
 		log.info("Notify all client when change session: ");
 		Object clients = memory.get("SocketClientList", "");
 		if (clients != null) {
 			for (SocketClient socketClient : (List<SocketClient>) clients) {
-				if (socketClient == null) continue;
+				if (socketClient == null)
+					continue;
 				tradingSessionStatus.setTargetCompID(socketClient.getUserId());
 				queueOutService.add(tradingSessionStatus);
 			}
 		}
 	}
-	
+
 	public void stop() {
 		isActive = false;
 	}
-	
+
 }

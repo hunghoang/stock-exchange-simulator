@@ -20,4 +20,8 @@ public class OrderStorageService {
 		}
 		return results;
 	}
+	
+	public void clearOrder() {
+		StorageFactory.resetStorage();
+	}
 }

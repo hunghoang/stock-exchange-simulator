@@ -13,6 +13,7 @@ import vn.com.vndirect.exchangesimulator.model.HnxMessage;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
 import vn.com.vndirect.exchangesimulator.model.OrdStatus;
 import vn.com.vndirect.exchangesimulator.model.OrderCancelRequest;
+import vn.com.vndirect.exchangesimulator.validator.exception.ValidateCode;
 
 public class CancelOrderProcessor implements Processor {
 	private final static Logger LOG = Logger.getLogger(CancelOrderProcessor.class);
@@ -78,13 +79,16 @@ public class CancelOrderProcessor implements Processor {
 		executionReport.setOrderID(request.getClOrdID());
 		if (originOrder == null || originOrder.getOrderQty() == 0) {
 			executionReport.setText("order is not existed or filled");
+			executionReport.setSessionRejectReason(ValidateCode.UNKNOWN_ORDER.code());
 		} else {
 			executionReport.setOrdType(originOrder.getOrdType());
 			executionReport.setSide(originOrder.getSide());
 			executionReport.setOrdType(originOrder.getOrdType());
 			executionReport.setSide(originOrder.getSide());
+			executionReport.setSessionRejectReason("Invalid order");
 			executionReport.setText("order is rejected");
 		}
+		executionReport.setRefMsgType(request.getMsgType());
 		executionReport.setUnderlyingLastQty(0);
 
 		return Collections.singletonList(executionReport);
