@@ -170,7 +170,7 @@ public class ReplaceOrderProcessor implements Processor {
 		}
 		
 		PriceValidator priceValidator = validator.getPriceValidator();
-		priceValidator.validate(request.getSymbol(), request.getPrice());
+		//priceValidator.validate(request.getSymbol(), request.getPrice());
 		return true;
 	}
 

@@ -11,7 +11,14 @@ import vn.com.vndirect.exchangesimulator.model.ExecutionReport;
 import vn.com.vndirect.exchangesimulator.model.HnxMessage;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
 import vn.com.vndirect.exchangesimulator.model.OrdStatus;
+import vn.com.vndirect.exchangesimulator.validator.AccountValidator;
 import vn.com.vndirect.exchangesimulator.validator.NewOrderSingleValidator;
+import vn.com.vndirect.exchangesimulator.validator.OrderTypeValidator;
+import vn.com.vndirect.exchangesimulator.validator.PriceValidator;
+import vn.com.vndirect.exchangesimulator.validator.QuantityValidator;
+import vn.com.vndirect.exchangesimulator.validator.SessionValidator;
+import vn.com.vndirect.exchangesimulator.validator.SideValidator;
+import vn.com.vndirect.exchangesimulator.validator.SymbolValidator;
 import vn.com.vndirect.exchangesimulator.validator.exception.ValidateException;
 
 public class PendingNewOrderProcessor implements Processor {
@@ -24,6 +31,56 @@ public class PendingNewOrderProcessor implements Processor {
 	public PendingNewOrderProcessor(Storage<NewOrderSingle> orderStorage, NewOrderSingleValidator validator) {
 		this.orderStorage = orderStorage;
 		this.validator = validator;
+		this.validator = new NewOrderSingleValidator() {
+			
+			@Override
+			public void validate(NewOrderSingle order) throws ValidateException {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public SymbolValidator getSymbolValidator() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+			
+			@Override
+			public SideValidator getSideValidator() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+			
+			@Override
+			public SessionValidator getSessionValidator() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+			
+			@Override
+			public QuantityValidator getQuantityValidator() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+			
+			@Override
+			public PriceValidator getPriceValidator() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+			
+			@Override
+			public OrderTypeValidator getOrderTypeValidator() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+			
+			@Override
+			public AccountValidator getAccountValidator() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+		};
 	}
 
 	@Override
