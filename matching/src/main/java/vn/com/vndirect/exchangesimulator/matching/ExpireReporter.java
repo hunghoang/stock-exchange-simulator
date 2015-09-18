@@ -4,12 +4,15 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import vn.com.vndirect.exchangesimulator.model.ExecType;
 import vn.com.vndirect.exchangesimulator.model.ExecutionReport;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
 import vn.com.vndirect.exchangesimulator.model.OrdStatus;
 
 public class ExpireReporter {
+	private static final Logger log = Logger.getLogger(ExpireReporter.class);
 
 	public List<ExecutionReport> generateReport(OrderList orders) {
 		List<ExecutionReport> result = new ArrayList<ExecutionReport>();
@@ -22,6 +25,7 @@ public class ExpireReporter {
 	}
 
 	private ExecutionReport generateReport(NewOrderSingle order) {
+		log.info("Generate expired report: " + order);
 		ExecutionReport report = new ExecutionReport();
 		report.setTargetCompID(order.getSenderCompID());
 		report.setOrdStatus(OrdStatus.REJECT);

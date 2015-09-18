@@ -31,56 +31,6 @@ public class PendingNewOrderProcessor implements Processor {
 	public PendingNewOrderProcessor(Storage<NewOrderSingle> orderStorage, NewOrderSingleValidator validator) {
 		this.orderStorage = orderStorage;
 		this.validator = validator;
-		this.validator = new NewOrderSingleValidator() {
-			
-			@Override
-			public void validate(NewOrderSingle order) throws ValidateException {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public SymbolValidator getSymbolValidator() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public SideValidator getSideValidator() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public SessionValidator getSessionValidator() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public QuantityValidator getQuantityValidator() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public PriceValidator getPriceValidator() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public OrderTypeValidator getOrderTypeValidator() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public AccountValidator getAccountValidator() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-		};
 	}
 
 	@Override

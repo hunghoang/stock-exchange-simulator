@@ -28,10 +28,8 @@ public class ATCReport extends ContinuousReport {
 		rp2.setLastQty(minQty);
 		rp2.setLastPx(price);
 		
-		char status1 = currOrder.getOrderQty() == minQty ? '2' : '1';
-		char status2 = nextOrder.getOrderQty() == minQty ? '2' : '1';
-		rp1.setOrdStatus(status1);
-		rp2.setOrdStatus(status2);
+		rp1.setOrdStatus(OrdStatus.FILL);
+		rp2.setOrdStatus(OrdStatus.FILL);
 		rp1.setPrice(price);
 		rp2.setPrice(price);
 		

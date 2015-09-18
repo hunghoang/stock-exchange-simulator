@@ -3,11 +3,15 @@ package vn.com.vndirect.exchangesimulator.matching;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import vn.com.vndirect.exchangesimulator.model.ExecutionReport;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
 
 public class ATCSessionMatcher {
 
+	private static final Logger log = Logger.getLogger(ATCSessionMatcher.class);
+	
 	private ATCBestMatches bestMatches;
 	private ATCVolAccumulator volCummulator;
 	private ExpireReporter expireReporter;
@@ -55,6 +59,7 @@ public class ATCSessionMatcher {
 		OrderMatcher m = new OrderMatcher(rpt);
 		matchedResults.addAll(m.match(bestBuy, bestSell));
 		allOrders.clearEmptyOrder();
+		log.info("Genereate expired report for: " + allOrders);
 		expiredResults = expireReporter.generateReport(allOrders);
 
 	}
