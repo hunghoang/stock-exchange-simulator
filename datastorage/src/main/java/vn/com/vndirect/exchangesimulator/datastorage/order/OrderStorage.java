@@ -43,4 +43,8 @@ public class OrderStorage implements Storage<NewOrderSingle> {
 	public int size() {
 		return map.size();
 	}
+
+	public void reset() {
+		map.clear();
+	}
 }
