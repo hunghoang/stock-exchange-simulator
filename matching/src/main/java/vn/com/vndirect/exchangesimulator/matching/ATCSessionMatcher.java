@@ -43,6 +43,8 @@ public class ATCSessionMatcher {
 	}
 
 	public void processATC() {
+		log.info("process ATC for : " + allOrders);
+		allOrders.clearEmptyOrder();
 		matchedResults = new ArrayList<ExecutionReport>();
 		int bestPrice = volCummulator.getBestPrice();
 		OrderList bestBuy;
@@ -61,7 +63,6 @@ public class ATCSessionMatcher {
 		allOrders.clearEmptyOrder();
 		log.info("Genereate expired report for: " + allOrders);
 		expiredResults = expireReporter.generateReport(allOrders);
-
 	}
 
 	public List<ExecutionReport> getExpiredResult() {

@@ -40,6 +40,8 @@ public class Matcher {
 			reports.addAll(continuousSessionAllOrderMatcher.getExecutionReport(order.getSymbol()));
 		}
 		
+		log.info("All order: " + orderStorageService.getAllOrder().size());
+
 		return reports;
 	}
 	
@@ -68,6 +70,7 @@ public class Matcher {
 		for(NewOrderSingle order : orders) {
 			if (isNotATCOrder(order)) {
 				if (order.getOrderQty() == 0) continue;
+				log.info("place order in atc matcher: " + order);
 				atcSessionAllOrderMatcher.push(order);
 			}
 		}
