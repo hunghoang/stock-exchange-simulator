@@ -31,6 +31,8 @@ public class StorageFactory {
 	}
 
 	public static void resetStorage() {
-		storeMap.clear();
+		for(OrderStorage os : storeMap.values()) {
+			os.reset();
+		}
 	}
 }
