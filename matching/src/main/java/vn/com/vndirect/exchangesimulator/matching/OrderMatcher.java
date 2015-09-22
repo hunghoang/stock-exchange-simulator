@@ -52,6 +52,7 @@ public class OrderMatcher {
 	}
 
 	private List<ExecutionReport> match(NewOrderSingle currOrder, NewOrderSingle nextOrder) {
+		// TODO: CHECK ORDER QTY
 		List<ExecutionReport> result = reportGenerator.createReport(currOrder, nextOrder);
 		updateMatchedOrder(currOrder, nextOrder);
 		return result;
