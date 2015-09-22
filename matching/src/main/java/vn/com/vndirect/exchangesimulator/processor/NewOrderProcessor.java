@@ -30,12 +30,12 @@ public class NewOrderProcessor implements Processor {
 		List<ExecutionReport> executionReports = new ArrayList<ExecutionReport>();
 		NewOrderSingle newOrderSingle = (NewOrderSingle) message; 
 		storeOrder(newOrderSingle);
-		log.info("List Order size of " + newOrderSingle.getSymbol() + " " + orderStorage.size());
+		log.info("List Order size before push: " + newOrderSingle.getSymbol() + " " + orderStorage.size());
 		
 		List<ExecutionReport> matchedExecutionReports = matcher.push(newOrderSingle);
 		cleanFilledOrder(matchedExecutionReports);
 		executionReports.addAll(matchedExecutionReports);
-		log.info("List Order size of " + newOrderSingle.getSymbol() + " " + orderStorage.size());
+		log.info("List Order size after push: " + newOrderSingle.getSymbol() + " " + orderStorage.size());
 		log.info("All order: " + new OrderStorageService().getAllOrder().size());
 		return executionReports;
 	}
