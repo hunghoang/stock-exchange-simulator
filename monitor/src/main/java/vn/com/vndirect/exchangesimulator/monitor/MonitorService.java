@@ -83,6 +83,7 @@ public class MonitorService {
 		strBuilder.append("<input type='button' value='EndOfDay' onclick=\"if(confirm('Are you sure you want to set End of Day Session?')) window.location.href='monitor?session=endofday'\">");
 		strBuilder.append("<br>");
 		strBuilder.append("<br><form action='monitor'>Message: <textarea name='fixmsg'></textarea><br><input type='submit' value='Send To CTCK'></form>");
+		strBuilder.append("<br><form action='updatePrice'><br>Price source: <input name='pricelink' value=''><br><input type='submit' value='Update price'></form>");
 		return strBuilder.toString();
 	}
 	

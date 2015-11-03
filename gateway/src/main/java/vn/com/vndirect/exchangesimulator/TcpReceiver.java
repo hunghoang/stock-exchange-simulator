@@ -81,8 +81,6 @@ public class TcpReceiver {
 				}
 				
 			}
-			
-			
 
 		};
 		receiveThread.start();
@@ -90,71 +88,10 @@ public class TcpReceiver {
 	
 	protected void pushToQueue(List<String> messages) {
 		for (String message : messages) {
-			Object object = convertFixToObject(message);
+			Object object = fixConvertor.convertFixToObject(message);
 			log.info("EX <--: " + message);
 			queueInService.add(object);
 		}
-	}
-
-	private Object convertFixToObject(String message) {
-		if (isLogonMessage(message)) {
-			return fixConvertor.convertFixToObject(message, Logon.class);
-		}
-		
-		if (isSecurityStatusRequestMessage(message)) {
-			return fixConvertor.convertFixToObject(message, SecurityStatusRequest.class);
-		}
-		
-		if (isTradingSessionStatusRequestMessage(message)) {
-			return fixConvertor.convertFixToObject(message, TradingSessionStatusRequest.class);
-		}
-
-		if (isNewOrderSingle(message)) {
-			return fixConvertor.convertFixToObject(message, NewOrderSingle.class);
-		}
-
-		if (isOrderReplaceRequest(message)) {
-			return fixConvertor.convertFixToObject(message,OrderReplaceRequest.class);
-		}
-
-		if (isOrderCancelRequest(message)) {
-			return fixConvertor.convertFixToObject(message,OrderCancelRequest.class);
-		}
-		
-		if (isTestRequestMessage(message)) {
-			return fixConvertor.convertFixToObject(message,TestRequest.class);
-		}
-
-		
-		return message;
-	}
-
-	private boolean isTestRequestMessage(String message) {
-		return message.indexOf("35=1") > 0;
-	}
-
-	private boolean isOrderCancelRequest(String message) {
-		return message.indexOf("35=F") > 0;
-	}
-
-	private boolean isOrderReplaceRequest(String message) {
-		return message.indexOf("35=G") > 0;
-	}
-
-	private boolean isNewOrderSingle(String message) {
-		return message.indexOf("35=D") > 0;
-	}
-
-	private boolean isTradingSessionStatusRequestMessage(String message) {
-		return message.indexOf("35=g") > 0;
-	}
-
-	private boolean isSecurityStatusRequestMessage(String message) {
-		return message.indexOf("35=e") > 0;
-	}
-
-	private boolean isLogonMessage(String message) {
-		return message.indexOf("35=A") > 0;
 	}
 
 	public List<Socket> getSocketList() {

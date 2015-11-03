@@ -1,6 +1,7 @@
 package vn.com.vndirect.exchangesimulator;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -75,7 +76,25 @@ public class TcpSender {
 		String text = fixConvertor.convertObjectToFix(message);
 		String userId = message.getTargetCompID();
 		SocketClient socketClient = (SocketClient) memory.get("SocketClient", userId);
-		socketClient.send(text);
+		if (socketClient != null) {
+			socketClient.send(text);
+		} else {
+			SocketClient sc = getDefaultSocket();
+			if (sc != null) {
+				sc.send(text);
+			}
+		}
+	}
+	
+	private SocketClient getDefaultSocket() {
+		Object clients = memory.get("SocketClientList", "");
+		if (clients != null) {
+			int size = ((ArrayList<SocketClient>) clients).size();
+			if (size > 0) {
+				return ((ArrayList<SocketClient>) clients).get(size - 1);
+			}
+		}
+		return null;
 	}
 	
 	public void manualSend(String userId, String message) throws IOException {

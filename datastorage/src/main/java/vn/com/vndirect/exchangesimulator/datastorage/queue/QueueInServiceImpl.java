@@ -4,7 +4,9 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import vn.com.vndirect.exchangesimulator.model.CrossOrderCancelRequest;
 import vn.com.vndirect.exchangesimulator.model.Logon;
+import vn.com.vndirect.exchangesimulator.model.NewOrderCross;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
 import vn.com.vndirect.exchangesimulator.model.OrderCancelRequest;
 import vn.com.vndirect.exchangesimulator.model.OrderReplaceRequest;
@@ -30,9 +32,13 @@ public class QueueInServiceImpl extends AbstractQueueService<Object> implements
 
 	@Autowired
 	private TradingSessionStatusRequestQueue tradingSessionStatusRequestQueue;
-
+	
 	@Autowired
 	private TestRequestQueue testRequestQueue;
+	
+
+	@Autowired
+	private CrossOrderQueue crossOrderQueue;
 
 	@Autowired
 	private OthersQueue othersQueue;
@@ -54,6 +60,8 @@ public class QueueInServiceImpl extends AbstractQueueService<Object> implements
 	public void route(Object objToRoute) {
 		if (NewOrderSingle.class.isInstance(objToRoute) || OrderCancelRequest.class.isInstance(objToRoute) || OrderReplaceRequest.class.isInstance(objToRoute)) {
 			orderQueue.add(objToRoute);
+		} else if (NewOrderCross.class.isInstance(objToRoute) || CrossOrderCancelRequest.class.isInstance(objToRoute)) {
+			crossOrderQueue.add(objToRoute);
 		} else if (Logon.class.isInstance(objToRoute)) {
 			logonQueue.add((Logon) objToRoute);
 		} else if (SecurityStatusRequest.class.isInstance(objToRoute)) {
