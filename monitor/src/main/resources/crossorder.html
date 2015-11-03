@@ -1,0 +1,328 @@
+<html>
+<head>
+<title>Order Cross Manager</title>
+<link rel="stylesheet" media="all"
+	href="https://s3.amazonaws.com/dynatable-docs-assets/css/reset.css" />
+<link
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"
+	rel="stylesheet"
+	integrity="sha256-MfvZlkHCEqatNoGiOXveE8FIwMzZg4W85qfrfIFBfYc= sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ=="
+	crossorigin="anonymous">
+<link rel="stylesheet" media="all"
+	href="https://s3.amazonaws.com/dynatable-docs-assets/css/application.css" />
+<link rel="stylesheet" media="all"
+	href="https://s3.amazonaws.com/dynatable-docs-assets/css/jquery.dynatable.css" />
+
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script type='text/javascript'
+	src='https://s3.amazonaws.com/dynatable-docs-assets/js/jquery.dynatable.js'></script>
+</head>
+
+<body>
+
+	<script type="text/javascript">
+		var CROSS_ORDER_FAKED_BUYER_URL = '/exchange-simulator/crossOrders-fakedbuyer';
+		var CROSS_ORDER_FAKED_SELLER_URL = '/exchange-simulator/crossOrders-fakedseller';
+		var CREATE_CROSS_ORDER_FAKED_SELLER_URL = '/exchange-simulator/crossOrders-fakedseller-create';
+		$(document).ready(function() {
+			$("#msgid").html("Order Cross Management");
+			loadOrder();
+			setInterval(function() {
+				reloadOrder()
+			}, 3000);
+		});
+
+		function loadOrder() {
+			$.ajax({
+				url : CROSS_ORDER_FAKED_BUYER_URL,
+				success : function(data) {
+					$('#my-ajax-table').dynatable({
+						features : {
+							paginate : false,
+							recordCount : false,
+							sorting : false,
+							search : false
+						},
+						dataset : {
+							records : data
+						},
+						writers : {
+							_rowWriter : myRowWriter
+						}
+					});
+				}
+			});
+			$.ajax({
+				url : CROSS_ORDER_FAKED_SELLER_URL,
+				success : function(data) {
+					$('#my-ajax-table2').dynatable({
+						features : {
+							paginate : false,
+							recordCount : false,
+							sorting : false,
+							search : false
+						},
+						dataset : {
+							records : data
+						},
+						writers : {
+							_rowWriter : myRowWriter
+						}
+					});
+				}
+			});
+		}
+
+		function reloadOrder() {
+			$.ajax({
+				url : CROSS_ORDER_FAKED_BUYER_URL,
+				success : function(data) {
+					var dynatable = $('#my-ajax-table').data('dynatable');
+					dynatable.records.updateFromJson({
+						records : data
+					});
+					dynatable.records.init();
+					dynatable.process();
+				}
+			});
+			$.ajax({
+				url : CROSS_ORDER_FAKED_SELLER_URL,
+				success : function(data) {
+					var dynatable = $('#my-ajax-table2').data('dynatable');
+					dynatable.records.updateFromJson({
+						records : data
+					});
+					dynatable.records.init();
+					dynatable.process();
+				}
+			});
+		}
+
+		function myRowWriter(rowIndex, record, columns, cellWriter) {
+			var numberOfActionCol = 1;
+			var tr = '';
+			for (var i = 0, len = columns.length; i < len - 1; i++) {
+				tr += cellWriter(columns[i], record);
+			}
+			tr += '<td>';
+			if (record.orderStatus == 'NEW') {
+				if (record.firm1 != record.firm2 && record.fakedSeller == false) {
+					tr += '<a href="#" onclick=ackTwoFirmOrder("'
+							+ record.orderId
+							+ '") class="btn primary">Send Ack</a>';
+				}
+				tr += '<a href="#" onclick=acceptOrder("' + record.orderId
+						+ '","' + record.firm1 + '","' + '","' + record.firm2
+						+ '") class="btn primary">Accept From Exchange</a>';
+				tr += '<a href="#" onclick=rejectFromExchange("'
+						+ record.orderId
+						+ '") class="btn btn-danger">Reject From Exchange</a></td>';
+			} else if (record.orderStatus == 'PENDING CANCEL') {
+				if (record.firm1 == record.firm2) {
+					tr += '<a href="#" onclick=acceptCancelOneFirm("'
+							+ record.orderId
+							+ '") class="btn primary">Accept Cancel From Exchange</a>';
+					tr += '<a href="#" onclick=rejectCancelOneFirm("'
+							+ record.orderId
+							+ '") class="btn btn-danger">Reject Cancel From Exchange</a>';
+				} else if (record.fakedSeller == false) {
+					tr += '<a href="#" onclick=acceptCancelFromBuyerTwoFirm("'
+							+ record.orderId
+							+ '") class="btn primary">Accept Cancel From Partner</a>';
+					tr += '<a href="#" onclick=rejectCancelTwoFirmFromPartner("'
+							+ record.orderId
+							+ '") class="btn btn-danger">Reject Cancel From Partner</a>';
+				}
+			} else if (record.orderStatus == 'CANCEL WAIT FOR APPROVAL') {
+				tr += '<a href="#" onclick=acceptCancelFromExchangeTwoFirm("'
+						+ record.orderId
+						+ '") class="btn primary">Accept Cancel From Exchange</a>';
+				tr += '<a href="#" onclick=rejectCancelFromExchange("'
+						+ record.orderId
+						+ '") class="btn btn-danger">Reject Cancel From From Exchange</a>';
+			} else if (record.orderStatus == 'REJECT CANCEL WAIT FOR APPROVAL') {
+				tr += '<a href="#" onclick=rejectCancelFromExchange("'
+						+ record.orderId
+						+ '") class="btn btn-danger">Reject Cancel From From Exchange</a>';
+			}
+			tr += '</td>';
+			return '<tr>' + tr + '</tr>';
+		}
+
+		function callExchangeAction(action, param) {
+			var actionUrl = "/exchange-simulator/crossOrderAction?action="
+					+ action;
+			$.post(actionUrl, param, function(data) {
+				reloadOrder();
+			}).error(function() {
+				alert("Error when call exchange");
+			});
+		}
+
+		function ackTwoFirmOrder(orderId) {
+			callExchangeAction("ackTwoFirmOrder", {
+				'data' : orderId
+			});
+		}
+
+		function acceptOrder(orderId, firm1, firm2) {
+			if (firm1 != firm2) {
+				callExchangeAction("acceptTwoFirm", {
+					'data' : orderId
+				});
+			} else {
+				callExchangeAction("acceptOneFirm", {
+					'data' : orderId
+				});
+			}
+		}
+
+		function acceptCancelFromBuyerTwoFirm(orderId) {
+			callExchangeAction("acceptCancelFromBuyerTwoFirm", {
+				'data' : orderId
+			});
+		}
+
+		function acceptCancelFromExchangeTwoFirm(orderId) {
+			callExchangeAction("acceptCancelFromExchangeTwoFirm", {
+				'data' : orderId
+			});
+		}
+
+		function acceptCancelOneFirm(orderId) {
+			callExchangeAction("acceptCancelOneFirm", {
+				'data' : orderId
+			});
+		}
+
+		function ackTwoFirmOrder(orderId) {
+			callExchangeAction("ackTwoFirmOrder", {
+				'data' : orderId
+			});
+		}
+
+		function rejectCancelFromExchange(orderId) {
+			callExchangeAction("rejectCancelFromExchange", {
+				'data' : orderId + ",-11003"
+			});
+		}
+
+		function rejectCancelTwoFirmFromPartner(orderId) {
+			callExchangeAction("rejectCancelTwoFirmFromPartner", {
+				'data' : orderId
+			});
+		}
+
+		function rejectCancelOneFirm(orderId) {
+			callExchangeAction("rejectCancelOneFirm", {
+				'data' : orderId
+			});
+		}
+
+		function rejectFromExchange(orderId) {
+			callExchangeAction("rejectFromExchangeWithCode", {
+				'data' : orderId + ",-11003"
+			});
+		}
+
+		function sendCrossOrderFakedSeller() {
+			$.post(CREATE_CROSS_ORDER_FAKED_SELLER_URL, $("#crossOrderForm")
+					.serialize(), function(data) {
+
+			});
+		}
+	</script>
+
+	<h1 class="text-center">Order Cross Management</h1>
+	<h3 class="text-center">Order Cross With Faked Buyer</h3>
+	<table id="my-ajax-table" class="table table-bordered"
+		style="width: 80%; margin: 0 auto !important;">
+		<thead>
+			<tr>
+				<th data-dynatable-column="orderId">OrderId</th>
+				<th data-dynatable-column="msgType">MsgType</th>
+				<th data-dynatable-column="symbol">Symbol</th>
+				<th data-dynatable-column="price">Price</th>
+				<th data-dynatable-column="quantity">Quantity</th>
+				<th data-dynatable-column="account1">Seller</th>
+				<th data-dynatable-column="firm1">SellerFirm</th>
+				<th data-dynatable-column="account2">Buyer</th>
+				<th data-dynatable-column="firm2">BuyerFirm</th>
+				<th data-dynatable-column="orderStatus">OrderStatus</th>
+				<th>Action</th>
+			</tr>
+		</thead>
+	</table>
+	<br>
+	<br>
+	<h3 class="text-center">Order Cross With Faked Seller</h3>
+	<table id="my-ajax-table2" class="table table-bordered"
+		style="width: 80%; margin: 0 auto !important;">
+		<thead>
+			<tr>
+				<th data-dynatable-column="orderId">OrderId</th>
+				<th data-dynatable-column="msgType">MsgType</th>
+				<th data-dynatable-column="symbol">Symbol</th>
+				<th data-dynatable-column="price">Price</th>
+				<th data-dynatable-column="quantity">Quantity</th>
+				<th data-dynatable-column="account1">Seller</th>
+				<th data-dynatable-column="firm1">SellerFirm</th>
+				<th data-dynatable-column="account2">Buyer</th>
+				<th data-dynatable-column="firm2">BuyerFirm</th>
+				<th data-dynatable-column="orderStatus">OrderStatus</th>
+				<th>Action</th>
+			</tr>
+		</thead>
+	</table>
+	<br>
+	<br>
+	<h3 class="text-center">Creator cross order with faked seller form</h3>
+	<div class="container">
+		<form action="" id="crossOrderForm" class="form-inline">
+			<div class="form-group">
+				<label for="symbol" class="sr-only">Symbol:</label> <input
+					class="form-control" name="symbol" id="symbol" value=""
+					placeholder="symbol">
+			</div>
+			<div class="form-group">
+				<label for="price" class="sr-only">Price:</label> <input
+					class="form-control" name="price" id="price" value=""
+					placeholder="price">
+			</div>
+			<div class="form-group">
+				<label for="quantity" class="sr-only">Quantity:</label> <input
+					class="form-control" name="quantity" id="quantity" value=""
+					placeholder="quantity">
+			</div>
+
+			<div class="form-group">
+				<label for="account1" class="sr-only">TraderId:</label> <input
+					class="form-control" name="account1" id="account1" value=""
+					placeholder="account1">
+			</div>
+
+			<div class="form-group">
+				<label for="firm1" class="sr-only">Firm1:</label> <input
+					class="form-control" name="firm1" id="firm1" value=""
+					placeholder="firm1">
+			</div>
+
+			<div class="form-group">
+				<label for="firm2" class="sr-only">Firm2:</label> <input
+					class="form-control" name="firm2" id="firm2" value=""
+					placeholder="firm2">
+			</div>
+		</form>
+			<br>
+			<div class="row">
+				<div class="col-md-3"></div>
+				<div class="col-md-5"></div>
+				<div class="col-md-3 text-right">
+					<a href="#" onclick="sendCrossOrderFakedSeller()"
+						class="btn primary">Send cross order from faked seller</a>
+				</div>
+			</div>
+	</div>
+</body>
+</html>
