@@ -338,7 +338,7 @@ public class MonitorRouteBuilder extends RouteBuilder {
 			crossOrder.msgType = cross.getMsgType();
 			crossOrder.symbol = cross.getSymbol();
 			crossOrder.price = cross.getPrice();
-			crossOrder.orderId = cross.getOrderId();
+			crossOrder.orderId = cross.getCrossID();
 			crossOrder.orderStatus = cross.getCurrentStatus();
 			crossOrder.quantity = cross.getGroupSides().get(0).getOrderQty();
 			crossOrder.account1 = cross.getGroupSides().get(0).getAccount();
