@@ -3,14 +3,11 @@ package vn.com.vndirect.exchangesimulator.controller;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
-
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import vn.com.vndirect.exchangesimulator.SocketClient;
-import vn.com.vndirect.exchangesimulator.TcpSender;
 import vn.com.vndirect.exchangesimulator.datastorage.memory.InMemory;
 import vn.com.vndirect.exchangesimulator.datastorage.queue.LogonQueue;
 import vn.com.vndirect.exchangesimulator.datastorage.queue.QueueOutService;
@@ -30,25 +27,24 @@ public class LogonController extends GatewayMessageController<Logon, Logon> {
 	}
 
 	@Override
-	protected Logon process(Logon messageIn) {
-		Logon acceptLogon = generateAcceptLogon(messageIn);
-		String userId = messageIn.getSenderCompID();
-		addSocketClient(userId);
+	protected Logon process(Logon logon) {
+		Logon acceptLogon = generateAcceptLogon(logon);
+		addSocketClient(acceptLogon.getTargetCompID());
 		return acceptLogon;
 	}
 
 	protected Logon generateAcceptLogon(Logon logon) {
-		String userId = logon.getSenderCompID();
+		String senderId = logon.getSenderCompID();
 		Logon acceptLogon = new Logon();
-		acceptLogon.setTargetCompID(userId);
+		acceptLogon.setTargetCompID(senderId);
 		acceptLogon.setText("Accept logon");
 		return acceptLogon;
 	}
 
-	private void addSocketClient(String userId) {
-		SocketClient client = (SocketClient) memory.get("SocketClient", userId);
+	private void addSocketClient(String user) {
+		SocketClient client = (SocketClient) memory.get("SocketClient", user);
 		if (client != null) {
-			log.info("Accept logon for user: " + userId);
+			log.info("Accept logon for user: " + user);
 			Object clients = memory.get("SocketClientList", "");
 			if (clients == null) {
 				clients = new ArrayList<SocketClient>();
@@ -57,7 +53,7 @@ public class LogonController extends GatewayMessageController<Logon, Logon> {
 			((List<SocketClient>) clients).add(client);
 			client.setLogon(true);
 		} else {
-			log.error("User not found: " + userId);
+			log.error("User not found: " + user);
 		}
 	}
 }

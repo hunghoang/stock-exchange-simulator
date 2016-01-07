@@ -145,6 +145,10 @@
 				tr += '<a href="#" onclick=rejectCancelFromExchange("'
 						+ record.orderId
 						+ '") class="btn btn-danger">Reject Cancel From From Exchange</a>';
+			} else if (record.orderStatus == 'FILL' && record.fakedSeller == true) {
+					tr += '<a href="#" onclick=sendCancelAckWithCrossID("'
+						+ record.orderId
+						+ '") class="btn btn-danger">Send Cancel From From Faked Seller</a>';
 			}
 			tr += '</td>';
 			return '<tr>' + tr + '</tr>';
@@ -162,6 +166,12 @@
 
 		function ackTwoFirmOrder(orderId) {
 			callExchangeAction("ackTwoFirmOrder", {
+				'data' : orderId
+			});
+		}
+		
+		function sendCancelAckWithCrossID(orderId) {
+			callExchangeAction("sendCancelAckWithCrossID", {
 				'data' : orderId
 			});
 		}

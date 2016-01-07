@@ -9,6 +9,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import vn.com.vndirect.exchangesimulator.datastorage.memory.InMemory;
 import vn.com.vndirect.exchangesimulator.datastorage.order.OrderStorageService;
 import vn.com.vndirect.exchangesimulator.datastorage.queue.CrossOrderQueue;
 import vn.com.vndirect.exchangesimulator.datastorage.queue.QueueOutService;
@@ -37,8 +38,8 @@ public class CrossOrderControllerTest {
 	};
 	
 	@Before
-	public void setup() {
-		orderController = new CrossOrderController(new CrossOrderQueue(), orderStorageService, queueOut);
+	public void setup() throws Exception {
+		orderController = new CrossOrderController(new CrossOrderQueue(), orderStorageService, new InMemory(), queueOut);
 		responses.clear();
 	}
 	
@@ -90,6 +91,7 @@ public class CrossOrderControllerTest {
 
 	private void verifyCancelAck(NewOrderCross order, CrossOrderCancelRequest cancelOrderResponse) {
 		Assert.assertNotNull(cancelOrderResponse);
+		Assert.assertNotNull(cancelOrderResponse.getTargetCompID());
 		Assert.assertEquals("VND", cancelOrderResponse.getSymbol());
 		Assert.assertEquals(order.getCrossID(), cancelOrderResponse.getCrossID());
 		Assert.assertEquals("1", cancelOrderResponse.getCrossType());
@@ -358,9 +360,13 @@ public class CrossOrderControllerTest {
 	public void testCrossOrderOfFakedSellerSendCancelToBuyerShouldCreateCancelAckMessage() {
 		NewOrderCross order = create2FirmOrderFakedSeller();
 		orderController.onEvent(order);
+		NewOrderCross orderConfirm = create2FirmOrderFakedSeller();
+		orderConfirm.setCrossID(order.getCrossID());
+		orderConfirm.setCrossType("5");
+		orderController.onEvent(orderConfirm);
 		orderController.sendCancelAckWithCrossID(order.getCrossID());
-		CrossOrderCancelRequest cancelOrderResponse = (CrossOrderCancelRequest) responses.get(1);
-		verifyCancelAck(order, cancelOrderResponse);
+		CrossOrderCancelRequest cancelOrderResponse = (CrossOrderCancelRequest) responses.get(2);
+		verifyCancelAck(orderConfirm, cancelOrderResponse);
 	}
 
 	@Test

@@ -2,6 +2,7 @@ package vn.com.vndirect.exchangesimulator.monitor;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -42,8 +43,9 @@ public class MonitorRouteBuilder extends RouteBuilder {
 	private static final String CROSS_ORDER_ACTION_LINK = "http://0.0.0.0:9005/exchange-simulator/crossOrderAction";
 	private static final String CROSS_ORDER_SCREEN_LINK = "http://0.0.0.0:9005/exchange-simulator/crossOrderManual";
 	private static final String ALL_ORDER_LINK = "http://0.0.0.0:9005/exchange-simulator/allOrder";
-	
-	private static final Logger LOGGER = Logger.getLogger(MonitorRouteBuilder.class);
+
+	private static final Logger LOGGER = Logger
+			.getLogger(MonitorRouteBuilder.class);
 
 	@Autowired
 	public MonitorService monitorService;
@@ -53,10 +55,10 @@ public class MonitorRouteBuilder extends RouteBuilder {
 
 	@Autowired
 	public TcpSender tcpSender;
-	
+
 	@Autowired
 	private SessionManagerService sessionManager;
-	
+
 	@Autowired
 	private SecurityStatusManagerImpl securityStatusManager;
 
@@ -115,33 +117,41 @@ public class MonitorRouteBuilder extends RouteBuilder {
 
 		});
 
-		from("jetty:" + ALL_CROSS_ORDER_FAKED_BUYER_LINK).process(new Processor() {
-			@Override
-			public void process(Exchange exc) throws Exception {
-				exc.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
-				exc.getOut().setHeader(Exchange.CONTENT_TYPE, "application/json");
-				List<NewOrderCross> listNewOrderCross = new ArrayList<NewOrderCross>();
-				listNewOrderCross.addAll(getCrossOrderFakedBuyer());
-				List<CrossOrder> crossOrders = convertToCrossOrder(listNewOrderCross);
-				exc.getOut().setBody(mapper.writeValueAsString(crossOrders));
-			}
-		});
+		from("jetty:" + ALL_CROSS_ORDER_FAKED_BUYER_LINK).process(
+				new Processor() {
+					@Override
+					public void process(Exchange exc) throws Exception {
+						exc.getOut()
+								.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+						exc.getOut().setHeader(Exchange.CONTENT_TYPE,
+								"application/json");
+						List<NewOrderCross> listNewOrderCross = new ArrayList<NewOrderCross>();
+						listNewOrderCross.addAll(getCrossOrderFakedBuyer());
+						List<CrossOrder> crossOrders = convertToCrossOrder(listNewOrderCross);
+						exc.getOut().setBody(
+								mapper.writeValueAsString(crossOrders));
+					}
+				});
 
-		from("jetty:" + ALL_CROSS_ORDER_FAKED_SELLER_LINK).process(new Processor() {
-			@Override
-			public void process(Exchange exc) throws Exception {
-				exc.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
-				exc.getOut().setHeader(Exchange.CONTENT_TYPE, "application/json");
-				List<NewOrderCross> listNewOrderCross = new ArrayList<NewOrderCross>();
-				listNewOrderCross.addAll(getCrossOrderFakedSeller());
-				List<CrossOrder> crossOrders = convertToCrossOrder(listNewOrderCross);
-				for(CrossOrder crossOrder: crossOrders) {
-					crossOrder.fakedSeller = true;
-				}
-				exc.getOut().setBody(mapper.writeValueAsString(crossOrders));
-			}
+		from("jetty:" + ALL_CROSS_ORDER_FAKED_SELLER_LINK).process(
+				new Processor() {
+					@Override
+					public void process(Exchange exc) throws Exception {
+						exc.getOut()
+								.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+						exc.getOut().setHeader(Exchange.CONTENT_TYPE,
+								"application/json");
+						List<NewOrderCross> listNewOrderCross = new ArrayList<NewOrderCross>();
+						listNewOrderCross.addAll(getCrossOrderFakedSeller());
+						List<CrossOrder> crossOrders = convertToCrossOrder(listNewOrderCross);
+						for (CrossOrder crossOrder : crossOrders) {
+							crossOrder.fakedSeller = true;
+						}
+						exc.getOut().setBody(
+								mapper.writeValueAsString(crossOrders));
+					}
 
-		});
+				});
 
 		from("jetty:" + CROSS_ORDER_ACTION_LINK).process(new Processor() {
 			@Override
@@ -159,29 +169,40 @@ public class MonitorRouteBuilder extends RouteBuilder {
 		from("jetty:" + CREATE_CROSS_ORDER_ACTION_LINK).process(
 				new Processor() {
 					int id = 1000;
-
+					
+					String initId = String.format("%tl%tM", Calendar.getInstance(), Calendar.getInstance());
+					
 					@Override
 					public void process(Exchange exc) throws Exception {
-						exc.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+						exc.getOut()
+								.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 						NewOrderCross cross = createCrossOrderFromRequest(exc);
 						crossOrderQueue.add(cross);
 					}
 
-					private NewOrderCross createCrossOrderFromRequest(Exchange exc) {
-						String symbol = exc.getIn().getHeader("symbol", String.class);
-						Double price = exc.getIn().getHeader("price", Double.class);
-						int quantity = exc.getIn().getHeader("quantity", Integer.class);
-						String account1 = exc.getIn().getHeader("account1", String.class);
-						String account2 = exc.getIn().getHeader("account2", String.class);
-						String firm1 = exc.getIn().getHeader("firm1", String.class);
-						String firm2 = exc.getIn().getHeader("firm2", String.class);
+					private NewOrderCross createCrossOrderFromRequest(
+							Exchange exc) {
+						String symbol = exc.getIn().getHeader("symbol",
+								String.class);
+						Double price = exc.getIn().getHeader("price",
+								Double.class);
+						int quantity = exc.getIn().getHeader("quantity",
+								Integer.class);
+						String account1 = exc.getIn().getHeader("account1",
+								String.class);
+						String account2 = exc.getIn().getHeader("account2",
+								String.class);
+						String firm1 = exc.getIn().getHeader("firm1",
+								String.class);
+						String firm2 = exc.getIn().getHeader("firm2",
+								String.class);
 						NewOrderCross cross = new NewOrderCross();
 						cross.setCrossType("1");
 						GroupSide groupSide1 = new GroupSide();
 						groupSide1.setAccount(account1);
 						groupSide1.setOrderQty(quantity);
 						groupSide1.setAccountType("");
-						groupSide1.setClOrdID(id++ + "");
+						groupSide1.setClOrdID(initId + (id++) + "");
 						groupSide1.setNoPartyIDs(1);
 						groupSide1.setPartyID(firm1);
 						groupSide1.setSide(Side.SELL.side());
@@ -190,7 +211,7 @@ public class MonitorRouteBuilder extends RouteBuilder {
 						groupSide2.setAccount(account2);
 						groupSide2.setOrderQty(quantity);
 						groupSide2.setAccountType("");
-						groupSide2.setClOrdID(id + "");
+						groupSide2.setClOrdID(initId + id + "");
 						groupSide2.setNoPartyIDs(1);
 						groupSide2.setPartyID(firm2);
 						groupSide2.setSide(Side.BUY.side());
@@ -232,22 +253,23 @@ public class MonitorRouteBuilder extends RouteBuilder {
 				if (session != null && !session.toString().isEmpty()) {
 					sessionManager.setSession(session.toString());
 				}
-				
+
 				if (fixmsg != null && !fixmsg.toString().isEmpty()) {
 					sendFixMsgToClient(fixmsg);
 				}
-				
+
 				exc.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 				exc.getOut().setBody(monitorService.buildMonitorContent());
 			}
-			
+
 		});
-		
+
 		from("jetty:" + UPDATE_PRICE_LINK).process(new Processor() {
 			@Override
 			public void process(Exchange exc) throws Exception {
-				String pricelink = exc.getIn().getHeader("pricelink", String.class);
-				
+				String pricelink = exc.getIn().getHeader("pricelink",
+						String.class);
+
 				if (pricelink != null && !pricelink.toString().isEmpty()) {
 					securityStatusManager.loadFromLink(pricelink);
 				}
@@ -300,14 +322,15 @@ public class MonitorRouteBuilder extends RouteBuilder {
 		tcpSender.manualSend(userId, standartFixMessage);
 	}
 
-	/** 
-	 * Cross Order with faked buyer that mean order send from known senderid to faked buyer
-	 * So we get this kind of order base on sendercompid != null
+	/**
+	 * Cross Order with faked buyer that mean order send from known senderid to
+	 * faked buyer So we get this kind of order base on sendercompid != null
+	 * 
 	 * @return
 	 */
 	private Collection<? extends NewOrderCross> getCrossOrderFakedBuyer() {
 		List<NewOrderCross> crossOrders = new ArrayList<NewOrderCross>();
-		for(NewOrderCross cross : orderStorageService.getAllCrossOrder()) {
+		for (NewOrderCross cross : orderStorageService.getAllCrossOrder()) {
 			if (cross.getSenderCompID() != null) {
 				crossOrders.add(cross);
 			}
@@ -315,14 +338,16 @@ public class MonitorRouteBuilder extends RouteBuilder {
 		return crossOrders;
 	}
 
-	/** 
-	 * Cross Order with faked sender that means order is created from exchange, so senderid is null
-	 * So we get this kind of order base on sendercompid == null
+	/**
+	 * Cross Order with faked sender that means order is created from exchange,
+	 * so senderid is null So we get this kind of order base on sendercompid ==
+	 * null
+	 * 
 	 * @return
 	 */
 	private Collection<? extends NewOrderCross> getCrossOrderFakedSeller() {
 		List<NewOrderCross> crossOrders = new ArrayList<NewOrderCross>();
-		for(NewOrderCross cross : orderStorageService.getAllCrossOrder()) {
+		for (NewOrderCross cross : orderStorageService.getAllCrossOrder()) {
 			if (cross.getSenderCompID() == null) {
 				crossOrders.add(cross);
 			}
@@ -350,5 +375,7 @@ public class MonitorRouteBuilder extends RouteBuilder {
 		return crossOrders;
 	}
 
-
+	public static void main(String[] args) {
+		System.out.println(String.format("%tl%tM", Calendar.getInstance(), Calendar.getInstance()));
+	}
 }

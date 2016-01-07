@@ -17,12 +17,6 @@ import vn.com.vndirect.exchangesimulator.datastorage.memory.InMemory;
 import vn.com.vndirect.exchangesimulator.datastorage.queue.QueueInService;
 import vn.com.vndirect.exchangesimulator.fixconvertor.FixConvertor;
 import vn.com.vndirect.exchangesimulator.model.Logon;
-import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
-import vn.com.vndirect.exchangesimulator.model.OrderCancelRequest;
-import vn.com.vndirect.exchangesimulator.model.OrderReplaceRequest;
-import vn.com.vndirect.exchangesimulator.model.SecurityStatusRequest;
-import vn.com.vndirect.exchangesimulator.model.TestRequest;
-import vn.com.vndirect.exchangesimulator.model.TradingSessionStatusRequest;
 
 @Component
 public class TcpReceiver {
@@ -60,7 +54,7 @@ public class TcpReceiver {
 		sockets.add(socket);
 	}
 
-	private void startSocket(Socket socket) throws IOException {
+	private void startSocket(final Socket socket) throws IOException {
 		final InputStream inputStream = socket.getInputStream();		
 		Thread receiveThread = new Thread() {			
 			@Override
@@ -72,8 +66,8 @@ public class TcpReceiver {
 					while ((bytesRead = inputStream.read(buffer)) != -1) {
 						byte[] receivedBytes = new byte[bytesRead]; 
 						System.arraycopy(buffer, 0, receivedBytes, 0, bytesRead);
-						List<String> messages = builder.receive(receivedBytes);
-						pushToQueue(messages);
+						List<String> messages = builder.build(receivedBytes);
+						receive(socket, messages);
 						buffer = new byte[1024];
 					}
 				} catch (IOException e) {
@@ -82,13 +76,28 @@ public class TcpReceiver {
 				
 			}
 
+
 		};
 		receiveThread.start();
 	}
+
+	private void acceptSocketWhenLogon(Socket socket, Logon logon) {
+		acceptSocket(logon.getSenderCompID(), socket);
+	}
 	
-	protected void pushToQueue(List<String> messages) {
+	public void acceptSocket(String senderCompId, Socket socket) {
+		log.info("Accept socket " + socket);
+		memory.put("SocketClient", senderCompId, new SocketClient(socket, senderCompId));
+		memory.put("sequence", senderCompId, 0);
+		memory.put("last_processed_sequence", senderCompId, 0);
+	}
+	
+	protected void receive(Socket socket, List<String> messages) {
 		for (String message : messages) {
 			Object object = fixConvertor.convertFixToObject(message);
+			if (Logon.class.isInstance(object)) {
+				acceptSocketWhenLogon(socket, (Logon) object);
+			}
 			log.info("EX <--: " + message);
 			queueInService.add(object);
 		}

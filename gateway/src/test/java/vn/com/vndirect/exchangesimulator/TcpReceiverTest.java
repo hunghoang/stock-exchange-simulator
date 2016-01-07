@@ -55,10 +55,10 @@ public class TcpReceiverTest {
 	
 	@Test
 	public void testPushQueueInWhenReceiveData() throws InterruptedException {
-		List<String> messages = new ArrayList<>();
+		List<String> messagesIn = new ArrayList<>();
 		String message = "8=FIX.4.49=8335=A49=021.01GW56=HNX34=052=xx:yy:zz369=098=0108=30553=021.01GW554=27216810=138";
-		messages.add(message);
-		tcpReceiver.pushToQueue(messages);
+		messagesIn.add(message);
+		tcpReceiver.receive(null, messagesIn);
 		Thread.sleep(1000);
 		Assert.assertEquals(1, messages.size());
 	}

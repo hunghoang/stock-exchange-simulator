@@ -7,7 +7,7 @@ public class FixMessageBuilder {
 
 	private StringBuilder buffer = new StringBuilder();
 
-	public List<String> receive(byte[] bytes) {
+	public List<String> build(byte[] bytes) {
 		List<String> messages = new ArrayList<String>();
 		buffer.append(new String(bytes));
 

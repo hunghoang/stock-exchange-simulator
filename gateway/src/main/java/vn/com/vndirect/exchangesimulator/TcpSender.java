@@ -17,8 +17,6 @@ import vn.com.vndirect.exchangesimulator.fixconvertor.FixConvertor;
 import vn.com.vndirect.exchangesimulator.model.Heartbeat;
 import vn.com.vndirect.exchangesimulator.model.HnxMessage;
 import vn.com.vndirect.exchangesimulator.model.Logon;
-import vn.com.vndirect.exchangesimulator.model.SecurityStatus;
-import vn.com.vndirect.exchangesimulator.model.TradingSessionStatus;
 import vn.com.web.commons.exception.SystemException;
 import vn.com.web.commons.utility.DateUtils;
 
@@ -31,9 +29,10 @@ public class TcpSender {
 	private QueueOutService queueOutService;
 	private boolean isActive;
 	private int heartbeatDelay = 15000;;
-
+	
+	
 	@Autowired
-	public TcpSender(QueueOutService queueOutService, InMemory memory, FixConvertor fixConvertor) {
+	public TcpSender(QueueOutService queueOutService, InMemory memory, FixConvertor fixConvertor) throws IOException {
 		this.memory = memory;
 		this.fixConvertor = fixConvertor;
 		this.queueOutService = queueOutService;
@@ -74,8 +73,8 @@ public class TcpSender {
 		setHeader(message);
 		setSequence(message);
 		String text = fixConvertor.convertObjectToFix(message);
-		String userId = message.getTargetCompID();
-		SocketClient socketClient = (SocketClient) memory.get("SocketClient", userId);
+		String targetCompId = message.getTargetCompID();
+		SocketClient socketClient = (SocketClient) memory.get("SocketClient", targetCompId);
 		if (socketClient != null) {
 			socketClient.send(text);
 		} else {
@@ -103,13 +102,13 @@ public class TcpSender {
 	}
 
 	private void setSequence(HnxMessage message) {
-		String userId = message.getTargetCompID();
-		Integer seqnum = (Integer) memory.get("sequence", userId);
-		Integer lastProccessedSeq = (Integer) memory.get("last_processed_sequence", userId);
+		String targetID = message.getTargetCompID();
+		Integer seqnum = (Integer) memory.get("sequence", targetID);
+		Integer lastProccessedSeq = (Integer) memory.get("last_processed_sequence", targetID);
 		if (isOrderMessage(message)) {
 			if (seqnum == null) 
 				seqnum = 0;
-			memory.put("sequence", userId, ++seqnum);
+			memory.put("sequence", targetID, ++seqnum);
 		}
 		message.setMsgSeqNum(seqnum);
 		message.setLastMsgSeqNumProcessed(lastProccessedSeq);
@@ -139,7 +138,6 @@ public class TcpSender {
 				while (isActive) {
 					try {
 						Object clients = memory.get("SocketClientList", "");
-						System.out.println(clients);
 						if (clients != null) {
 							for (SocketClient socketClient : (List<SocketClient>) clients) {
 								hb.setTargetCompID(socketClient.getUserId());

@@ -1,14 +1,17 @@
 package vn.com.vndirect.exchangesimulator.controller;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import vn.com.vndirect.exchangesimulator.datastorage.memory.InMemory;
 import vn.com.vndirect.exchangesimulator.datastorage.order.OrderStorageService;
 import vn.com.vndirect.exchangesimulator.datastorage.queue.CrossOrderQueue;
 import vn.com.vndirect.exchangesimulator.datastorage.queue.QueueListener;
@@ -17,8 +20,10 @@ import vn.com.vndirect.exchangesimulator.model.CrossOrderCancelRequest;
 import vn.com.vndirect.exchangesimulator.model.ExecType;
 import vn.com.vndirect.exchangesimulator.model.ExecutionReport;
 import vn.com.vndirect.exchangesimulator.model.GroupSide;
+import vn.com.vndirect.exchangesimulator.model.HnxMessage;
 import vn.com.vndirect.exchangesimulator.model.NewOrderCross;
 import vn.com.vndirect.exchangesimulator.model.OrdStatus;
+import vn.com.vndirect.lib.commonlib.file.FileUtils;
 
 @Component
 public class CrossOrderController implements QueueListener {
@@ -32,15 +37,22 @@ public class CrossOrderController implements QueueListener {
 	private QueueOutService<Object> queueOut;
 
 	private Map<String, Method> methodMap = new HashMap<String, Method>();
+	
+	private Properties properties;
+	
+	private InMemory memory;
 
 	@Autowired
 	public CrossOrderController(CrossOrderQueue queueIn,
-			OrderStorageService orderStorageService,
-			QueueOutService<Object> queueOut) {
+			OrderStorageService orderStorageService, InMemory memory,
+			QueueOutService<Object> queueOut) throws IOException {
 		this.queueIn = queueIn;
 		this.orderStorageService = orderStorageService;
 		this.queueIn.addListener(this);
 		this.queueOut = queueOut;
+		this.memory = memory;
+		properties = new Properties();
+		properties.load(FileUtils.getInputStream("config/server.properties"));
 		mappingMethodWithName();
 	}
 
@@ -96,8 +108,15 @@ public class CrossOrderController implements QueueListener {
 			LOGGER.error("No NewOrderCross found for: " + order.getCrossID());
 			return;
 		}
+		if (isFakedSeller(oldOrder)) {
+			updateOrderToFakedSeller(order);
+		}
 		orderStorageService.removeCrossOrder(oldOrder);	
 		orderStorageService.addCrossOrder(order);	
+	}
+
+	private void updateOrderToFakedSeller(NewOrderCross order) {
+		order.setSenderCompID(null);
 	}
 
 	private boolean isNewOrder(NewOrderCross order) {
@@ -208,12 +227,13 @@ public class CrossOrderController implements QueueListener {
 		cross.setCurrentStatus("PENDING CANCEL");
 		CrossOrderCancelRequest cancelOrderResponse = new CrossOrderCancelRequest();
 		cancelOrderResponse.setCrossID(crossID);
-		cancelOrderResponse.setTargetCompID(cross.getSenderCompID());
+		String targetCompId = getTargetCompIdToReply(cross);
+		cancelOrderResponse.setTargetCompID(targetCompId);
 		cancelOrderResponse.setSymbol(cross.getSymbol());
 		cancelOrderResponse.setOrigCrossID(cross.getCrossID());
 		cancelOrderResponse.setCrossType("1");
 		cancelOrderResponse.setOrderId(cross.getCrossID());
-		queueOut.add(cancelOrderResponse);
+		response(cancelOrderResponse);
 	}
 
 	public void acceptOneFirm(String crossID) {
@@ -224,7 +244,7 @@ public class CrossOrderController implements QueueListener {
 		}
 		updateFillStatus(cross);
 		ExecutionReport report = confirmCrossOrder(cross);
-		queueOut.add(report);
+		response(report);
 	}
 
 	private ExecutionReport confirmCrossOrder(NewOrderCross cross) {
@@ -252,7 +272,8 @@ public class CrossOrderController implements QueueListener {
 		if (cross.getSenderCompID() != null) {
 			return cross.getSenderCompID();
 		}
-		return cross.getGroupSides().get(1).getPartyID() + "1GW";
+		String traderId = cross.getGroupSides().get(1).getPartyID();
+		return properties.getProperty(traderId);
 	}
 
 	public void rejectFromExchangeWithCode(String crossIDAndrejectCode) {
@@ -276,7 +297,7 @@ public class CrossOrderController implements QueueListener {
 		report.setRefSeqNum(cross.getMsgSeqNum());
 		report.setSessionRejectReason(rejectCode);
 		report.setSymbol(cross.getSymbol());
-		queueOut.add(report);
+		response(report);
 	}
 
 	public void acceptCancelOneFirm(String orderId) {
@@ -303,7 +324,7 @@ public class CrossOrderController implements QueueListener {
 		report.setOrigClOrdID(cross.getCrossID());
 		report.setSecondaryClOrdID(cross.getCrossID());
 		report.setExecID(report.getOrderID());
-		queueOut.add(report);
+		response(report);
 	}
 
 	public void rejectCancelOneFirm(String crossID) {
@@ -333,7 +354,8 @@ public class CrossOrderController implements QueueListener {
 			orderResponse.setCrossType(order.getCrossType());
 			orderResponse.setSettlType(order.getSettlType());
 			orderResponse.setPrice(order.getPrice());
-			queueOut.add(orderResponse);
+			response(orderResponse);
+			
 		}
 	}
 
@@ -350,7 +372,7 @@ public class CrossOrderController implements QueueListener {
 		}
 		updateFillStatus(cross);
 		ExecutionReport report = confirmCrossOrder(cross);
-		queueOut.add(report);
+		response(report);
 	}
 
 	public void acceptCancelFromBuyerTwoFirm(String orderId) {
@@ -378,7 +400,7 @@ public class CrossOrderController implements QueueListener {
 		report.setOrigClOrdID(cross.getCrossID());
 		report.setSecondaryClOrdID(cross.getCrossID());
 		report.setExecID(report.getOrderID());
-		queueOut.add(report);
+		response(report);
 	}
 
 	public void acceptCancelFromExchangeTwoFirm(String orderId) {
@@ -407,7 +429,7 @@ public class CrossOrderController implements QueueListener {
 		report.setSide('8');
 		report.setPrice(cross.getPrice());
 		report.setLeavesQty(cross.getGroupSides().get(0).getOrderQty());
-		queueOut.add(report);
+		response(report);
 	}
 
 	public void rejectCancelTwoFirmFromPartner(String orderId) {
@@ -428,6 +450,15 @@ public class CrossOrderController implements QueueListener {
 		updateFillStatus(cross);
 		ExecutionReport report = confirmCrossOrder(cross);
 		report.setOrdRejReason(rejectCode);
-		queueOut.add(report);
+		response(report);
+	}
+
+	private boolean response(HnxMessage report) {
+		Integer lastProccessedSeq = (Integer) memory.get("last_processed_sequence", report.getTargetCompID());
+		if (lastProccessedSeq == null) {
+			lastProccessedSeq = 0;
+		}
+		memory.put("last_processed_sequence", report.getTargetCompID(), ++lastProccessedSeq);
+		return queueOut.add(report);
 	}
 }
