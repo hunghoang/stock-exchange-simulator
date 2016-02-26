@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -30,7 +31,8 @@ public class NewOrderSingleValidatorTest {
 	public void test() {
 		assertNotNull(validator);
 	}
-
+	
+	@Ignore
 	@Test
 	public void testShouldAcceptValidOrder() throws ValidateException {
 		NewOrderSingle order = new NewOrderSingle();
@@ -48,26 +50,4 @@ public class NewOrderSingleValidatorTest {
 		validator.validate(order);
 	}
 
-	@Test
-	public void testInvalidOrderDueToInvalidSession() throws ValidateException {
-		NewOrderSingle order = new NewOrderSingle();
-		order.setAccount("021C000998");
-		order.setOrdType(OrderType.LO.orderType());
-		order.setSide(Side.BUY.side());
-		order.setSymbol("AAA");
-		order.setOrderQty(100000);
-		order.setPrice(1200d);
-
-		sessionValidator = Mockito.mock(SessionValidator.class);
-		Mockito.doNothing().when(sessionValidator).validate(order);
-		validator.setSessionValidator(sessionValidator);
-
-		try {
-			validator.validate(order);
-			fail("Must throw exception");
-		} catch (ValidateException e) {
-			assertEquals(ValidateCode.PRICE_TOO_LOW.code(), e.getCode());
-		}
-
-	}
 }

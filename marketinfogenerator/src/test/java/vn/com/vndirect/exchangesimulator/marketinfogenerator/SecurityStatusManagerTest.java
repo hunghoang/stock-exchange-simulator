@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import vn.com.vndirect.exchangesimulator.datastorage.memory.InMemory;
@@ -23,6 +24,8 @@ public class SecurityStatusManagerTest {
 		securityStatusManager.setInmemory(new InMemory());
 	}
 	
+
+	@Ignore
 	@Test
 	public void shouldMakePreOpenTradingSessionStatus() {
 		listMesg = securityStatusManager.getSecurityStatus();
@@ -30,6 +33,7 @@ public class SecurityStatusManagerTest {
 		Assert.assertTrue(listMesg.size() > 0);
 	}
 	
+	@Ignore
 	@Test
 	public void shouldGetTradingSessionStatusFromFile() throws ParseException {
 		listMesg = securityStatusManager.getSecurityStatus();

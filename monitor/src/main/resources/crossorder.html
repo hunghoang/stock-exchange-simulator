@@ -25,6 +25,7 @@
 		var CROSS_ORDER_FAKED_BUYER_URL = '/exchange-simulator/crossOrders-fakedbuyer';
 		var CROSS_ORDER_FAKED_SELLER_URL = '/exchange-simulator/crossOrders-fakedseller';
 		var CREATE_CROSS_ORDER_FAKED_SELLER_URL = '/exchange-simulator/crossOrders-fakedseller-create';
+		var CLEAR_CROSS_ORDERS_URL = '/exchange-simulator/crossOrders-clear';
 		$(document).ready(function() {
 			$("#msgid").html("Order Cross Management");
 			loadOrder();
@@ -242,6 +243,11 @@
 
 			});
 		}
+		function clearAllCrossOrders() {
+			$.post(CLEAR_CROSS_ORDERS_URL, {}, function(data) {
+
+			});
+		}
 	</script>
 
 	<h1 class="text-center">Order Cross Management</h1>
@@ -331,6 +337,14 @@
 				<div class="col-md-3 text-right">
 					<a href="#" onclick="sendCrossOrderFakedSeller()"
 						class="btn primary">Send cross order from faked seller</a>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-3"></div>
+				<div class="col-md-5"></div>
+				<div class="col-md-3 text-right">
+					<a href="#" onclick="clearAllCrossOrders()"
+						class="btn primary">Clear all cross orders</a>
 				</div>
 			</div>
 	</div>

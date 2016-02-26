@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -25,7 +26,7 @@ public class SecurityStatusManagerImpl implements SecurityStatusManager {
 	private static final String STORE_SECURITY_TYPE = "securitystatus";
 
 	private ObjectConvertor convertor;
-	private List<SecurityStatus> listMesg;
+	private List<SecurityStatus> listMesg = new ArrayList<SecurityStatus>();
 
 	@Autowired
 	private InMemory inmemory;
@@ -35,7 +36,6 @@ public class SecurityStatusManagerImpl implements SecurityStatusManager {
 	@Autowired
 	public SecurityStatusManagerImpl(ObjectConvertor objConverter) {
 		this.convertor = objConverter;
-		loadDataFromCSV();
 		objectMapper = new ObjectMapper();
 	}
 
@@ -47,7 +47,7 @@ public class SecurityStatusManagerImpl implements SecurityStatusManager {
 		}
 	}
 
-	private void loadDataFromCSV() {
+	public void loadDataFromCSV() {
 		listMesg = convertor.convertFromCSVFile(SOURCE, SecurityStatus.class);
 	}
 

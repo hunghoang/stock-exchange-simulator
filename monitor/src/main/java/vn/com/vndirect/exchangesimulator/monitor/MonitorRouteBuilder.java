@@ -29,6 +29,8 @@ import vn.com.vndirect.exchangesimulator.marketinfogenerator.SecurityStatusManag
 import vn.com.vndirect.exchangesimulator.model.GroupSide;
 import vn.com.vndirect.exchangesimulator.model.NewOrderCross;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
+import vn.com.vndirect.exchangesimulator.model.SecurityStatus;
+import vn.com.vndirect.exchangesimulator.service.SecurityService;
 import vn.com.vndirect.lib.commonlib.file.FileUtils;
 
 @Component
@@ -37,12 +39,14 @@ public class MonitorRouteBuilder extends RouteBuilder {
 	private static final String UPDATE_PRICE_LINK = "http://0.0.0.0:9005/exchange-simulator/updatePrice";
 	private static final String MANUAL_MATCHING_LINK = "http://0.0.0.0:9005/exchange-simulator/manualMatching";
 	private static final String ORDER_MANAGER_LINK = "http://0.0.0.0:9005/exchange-simulator/orderManager";
+	private static final String ALL_CROSS_ORDER_CLEAR_LINK = "http://0.0.0.0:9005/exchange-simulator/crossOrders-clear";
 	private static final String ALL_CROSS_ORDER_FAKED_BUYER_LINK = "http://0.0.0.0:9005/exchange-simulator/crossOrders-fakedbuyer";
 	private static final String ALL_CROSS_ORDER_FAKED_SELLER_LINK = "http://0.0.0.0:9005/exchange-simulator/crossOrders-fakedseller";
 	private static final String CREATE_CROSS_ORDER_ACTION_LINK = "http://0.0.0.0:9005/exchange-simulator/crossOrders-fakedseller-create";
 	private static final String CROSS_ORDER_ACTION_LINK = "http://0.0.0.0:9005/exchange-simulator/crossOrderAction";
 	private static final String CROSS_ORDER_SCREEN_LINK = "http://0.0.0.0:9005/exchange-simulator/crossOrderManual";
 	private static final String ALL_ORDER_LINK = "http://0.0.0.0:9005/exchange-simulator/allOrder";
+	private static final String SET_PRICE_LINK = "http://0.0.0.0:9005/exchange-simulator/price";
 
 	private static final Logger LOGGER = Logger
 			.getLogger(MonitorRouteBuilder.class);
@@ -58,6 +62,9 @@ public class MonitorRouteBuilder extends RouteBuilder {
 
 	@Autowired
 	private SessionManagerService sessionManager;
+	
+	@Autowired
+	private SecurityService securityService;
 
 	@Autowired
 	private SecurityStatusManagerImpl securityStatusManager;
@@ -117,12 +124,22 @@ public class MonitorRouteBuilder extends RouteBuilder {
 
 		});
 
+		from("jetty:" + ALL_CROSS_ORDER_CLEAR_LINK).process(
+				new Processor() {
+					@Override
+					public void process(Exchange exc) throws Exception {
+						exc.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+						exc.getOut().setHeader(Exchange.CONTENT_TYPE, "application/json");
+						orderStorageService.clearCrossOrder();
+					}
+				});
+		
 		from("jetty:" + ALL_CROSS_ORDER_FAKED_BUYER_LINK).process(
 				new Processor() {
 					@Override
 					public void process(Exchange exc) throws Exception {
 						exc.getOut()
-								.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+						.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 						exc.getOut().setHeader(Exchange.CONTENT_TYPE,
 								"application/json");
 						List<NewOrderCross> listNewOrderCross = new ArrayList<NewOrderCross>();
@@ -225,6 +242,26 @@ public class MonitorRouteBuilder extends RouteBuilder {
 						return cross;
 					}
 
+				});
+		from("jetty:" + SET_PRICE_LINK).process(
+				new Processor() {
+					@Override
+					public void process(Exchange exc) throws Exception {
+						String method = exc.getIn().getHeader(Exchange.HTTP_METHOD).toString();
+						String symbol = exc.getIn().getHeader("symbol", String.class);
+						Long ceiling = exc.getIn().getHeader("ceiling", Long.class);
+						Long floor = exc.getIn().getHeader("floor", Long.class);
+						if (method == "POST") {
+							securityService.setSecurityBySymbol(symbol, ceiling, floor);
+						}
+						SecurityStatus securityStatus = securityService.getSecurityBySymbol(symbol);
+						exc.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+						exc.getOut().setHeader(Exchange.CONTENT_TYPE,
+								"application/json; charset=utf-8");
+						String json = String.format("{\"symbol\":\"%s\",\"ceil\":\"%d\",\"floor\":\"%d\"}", securityStatus.getSymbol(), securityStatus.getHighPx(), securityStatus.getLowPx());
+						exc.getOut().setBody(json);
+					}
+					
 				});
 
 		from("jetty:" + CROSS_ORDER_SCREEN_LINK).process(new Processor() {
@@ -336,6 +373,15 @@ public class MonitorRouteBuilder extends RouteBuilder {
 			}
 		}
 		return crossOrders;
+	}
+	
+	/**
+	 * Clean all cross order
+	 * 
+	 * @return
+	 */
+	private void clearAllCrossOrder() {
+		orderStorageService.clearCrossOrder();
 	}
 
 	/**

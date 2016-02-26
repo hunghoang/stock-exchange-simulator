@@ -30,16 +30,18 @@ public class PriceValidatorImpl implements PriceValidator {
 	@Override
 	public void validate(String symbol, double price) throws ValidateException {
 		SecurityStatus security = securityService.getSecurityBySymbol(symbol);
-		if (price < security.getLowPx()) {
-			throw new ValidateException(ValidateCode.PRICE_TOO_LOW.code(), ValidateCode.PRICE_TOO_LOW.message());
-		}
-		
-		if (price > security.getHighPx()) {
-			throw new ValidateException(ValidateCode.PRICE_TOO_HIGH.code(), ValidateCode.PRICE_TOO_HIGH.message());
-		}
-		
-		if (price % PRICE_STEP != 0) {
-			throw new ValidateException(ValidateCode.INVALID_PRICE_STEP.code(), ValidateCode.INVALID_PRICE_STEP.message());
+		if (security != null) {
+			if (price < security.getLowPx()) {
+				throw new ValidateException(ValidateCode.PRICE_TOO_LOW.code(), ValidateCode.PRICE_TOO_LOW.message());
+			}
+			
+			if (price > security.getHighPx()) {
+				throw new ValidateException(ValidateCode.PRICE_TOO_HIGH.code(), ValidateCode.PRICE_TOO_HIGH.message());
+			}
+			
+			if (price % PRICE_STEP != 0) {
+				throw new ValidateException(ValidateCode.INVALID_PRICE_STEP.code(), ValidateCode.INVALID_PRICE_STEP.message());
+			}
 		}
 	}
 

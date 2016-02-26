@@ -52,7 +52,7 @@ public class QueueInServiceTest {
 		service.add(objToAdd);
 		service.add(request);
 
-		Thread.sleep(100);
+		Thread.sleep(200);
 
 		Assert.assertEquals(0, service.size());
 		Assert.assertEquals(1, tradingSessionStatusRequestQueue.size());
@@ -72,7 +72,7 @@ public class QueueInServiceTest {
 
 		service.add(objToAdd);
 		service.add(request);
-		Thread.sleep(100);
+		Thread.sleep(200);
 
 		Assert.assertEquals(0, service.size());
 		Assert.assertEquals(1, securityStatusRequestQueue.size());
@@ -91,7 +91,7 @@ public class QueueInServiceTest {
 		service.add(objToAdd);
 		service.add(orderSingle);
 
-		Thread.sleep(100);
+		Thread.sleep(200);
 		Assert.assertEquals(0, service.size());
 		Assert.assertEquals(1, orderQueue.size());
 		Assert.assertEquals(orderSingle, orderQueue.peek());
@@ -110,7 +110,7 @@ public class QueueInServiceTest {
 		service.add(aString);
 		service.add(request);
 
-		Thread.sleep(100);
+		Thread.sleep(200);
 		assertEquals(0, service.size());
 		assertEquals(1, orderQueue.size());
 		assertEquals(request, orderQueue.peek());
@@ -128,7 +128,7 @@ public class QueueInServiceTest {
 		service.add(aString);
 		service.add(request);
 
-		Thread.sleep(100);
+		Thread.sleep(200);
 
 		assertEquals(0, service.size());
 		assertEquals(1, orderQueue.size());
@@ -149,7 +149,7 @@ public class QueueInServiceTest {
 		service.add(objToAdd);
 		service.add(logon);
 
-		Thread.sleep(100);
+		Thread.sleep(200);
 
 		Assert.assertEquals(0, service.size());
 		Assert.assertEquals(1, logonQueue.size());

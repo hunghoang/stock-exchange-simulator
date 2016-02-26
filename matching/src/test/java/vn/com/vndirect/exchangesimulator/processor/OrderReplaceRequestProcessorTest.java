@@ -2,10 +2,6 @@ package vn.com.vndirect.exchangesimulator.processor;
 
 import java.util.List;
 
-import javafx.beans.binding.When;
-
-import javax.mail.internet.NewsAddress;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

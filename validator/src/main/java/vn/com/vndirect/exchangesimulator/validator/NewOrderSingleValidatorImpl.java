@@ -12,9 +12,6 @@ import vn.com.vndirect.exchangesimulator.validator.exception.ValidateException;
 public class NewOrderSingleValidatorImpl implements NewOrderSingleValidator {
 
 	@Autowired
-	private SymbolValidator symbolValidator;
-	
-	@Autowired
 	private SessionValidator sessionValidator;
 	
 	@Autowired
@@ -43,26 +40,16 @@ public class NewOrderSingleValidatorImpl implements NewOrderSingleValidator {
 		accountValidator.validate(account);
 		orderTypeValidator.validate(ordType);
 		sideValidator.validate(side);
-		symbolValidator.validate(symbol);
 		if (OrderType.ATC.orderType() != ordType
 				&& OrderType.MAK.orderType() != ordType
 				&& OrderType.MOK.orderType() != ordType
 				&& OrderType.MTL.orderType() != ordType) {
 			priceValidator.validate(symbol, price);
 		}
-		sessionValidator.validate(order);
 	}
 
 	protected void setSessionValidator(SessionValidator sessionValidator) {
 		this.sessionValidator = sessionValidator;
-	}
-
-	public SymbolValidator getSymbolValidator() {
-		return symbolValidator;
-	}
-
-	public void setSymbolValidator(SymbolValidator symbolValidator) {
-		this.symbolValidator = symbolValidator;
 	}
 
 	public PriceValidator getPriceValidator() {

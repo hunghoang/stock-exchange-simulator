@@ -15,5 +15,14 @@ public class SecurityServiceImpl implements SecurityService {
 	public SecurityStatus getSecurityBySymbol(String symbol) {
 		return (SecurityStatus)inMemory.get("securitystatus", symbol);
 	}
+	
+	@Override
+	public void setSecurityBySymbol(String symbol, long ceiling, long floor) {
+		SecurityStatus securityStatus = new SecurityStatus();
+		securityStatus.setHighPx(ceiling);
+		securityStatus.setLowPx(floor);
+		securityStatus.setSymbol(symbol);
+		inMemory.put("securitystatus", symbol, securityStatus);
+	}
 
 }

@@ -11,14 +11,7 @@ import vn.com.vndirect.exchangesimulator.model.ExecutionReport;
 import vn.com.vndirect.exchangesimulator.model.HnxMessage;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
 import vn.com.vndirect.exchangesimulator.model.OrdStatus;
-import vn.com.vndirect.exchangesimulator.validator.AccountValidator;
 import vn.com.vndirect.exchangesimulator.validator.NewOrderSingleValidator;
-import vn.com.vndirect.exchangesimulator.validator.OrderTypeValidator;
-import vn.com.vndirect.exchangesimulator.validator.PriceValidator;
-import vn.com.vndirect.exchangesimulator.validator.QuantityValidator;
-import vn.com.vndirect.exchangesimulator.validator.SessionValidator;
-import vn.com.vndirect.exchangesimulator.validator.SideValidator;
-import vn.com.vndirect.exchangesimulator.validator.SymbolValidator;
 import vn.com.vndirect.exchangesimulator.validator.exception.ValidateException;
 
 public class PendingNewOrderProcessor implements Processor {

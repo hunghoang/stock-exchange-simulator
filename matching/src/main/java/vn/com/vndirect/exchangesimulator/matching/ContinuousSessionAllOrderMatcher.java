@@ -29,10 +29,12 @@ public class ContinuousSessionAllOrderMatcher {
 	
 	protected int getFloor(String symbol){
 		SecurityStatus securityStatus = (SecurityStatus) memory.get("securitystatus", symbol);
+		if (securityStatus == null) return 100;
 		return (int) Math.floor(securityStatus.getLowPx());	}
 	
 	protected int getCeil(String symbol){
 		SecurityStatus securityStatus = (SecurityStatus) memory.get("securitystatus", symbol);		
+		if (securityStatus == null) return 500000;
 		return (int) Math.floor(securityStatus.getHighPx());
 	}
 	

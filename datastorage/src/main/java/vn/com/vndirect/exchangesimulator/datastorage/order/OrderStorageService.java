@@ -24,10 +24,14 @@ public class OrderStorageService {
 		return results;
 	}
 	
-	public void clearOrder() {
-		StorageFactory.resetStorage();
+	public void clearCrossOrder() {
 		newOrderCrossList.clear();
 		crossOrderCancelList.clear();
+	}
+	
+	public void clearOrder() {
+		StorageFactory.resetStorage();
+		clearCrossOrder();
 	}
 	
 	public List<NewOrderCross> getAllCrossOrder() {

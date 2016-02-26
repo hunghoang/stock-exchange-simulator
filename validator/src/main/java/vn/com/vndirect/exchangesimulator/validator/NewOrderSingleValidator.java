@@ -6,8 +6,6 @@ import vn.com.vndirect.exchangesimulator.validator.exception.ValidateException;
 public interface NewOrderSingleValidator {
 	void validate(NewOrderSingle order) throws ValidateException;
 	
-	public SymbolValidator getSymbolValidator();
-	
 	public PriceValidator getPriceValidator();
 
 	public QuantityValidator getQuantityValidator();
