@@ -13,25 +13,31 @@ import vn.com.vndirect.exchangesimulator.model.HnxMessage;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
 import vn.com.vndirect.exchangesimulator.model.OrdStatus;
 import vn.com.vndirect.exchangesimulator.model.OrderCancelRequest;
-import vn.com.vndirect.exchangesimulator.validator.exception.ValidateCode;
+import vn.com.vndirect.exchangesimulator.validator.NewOrderSingleValidator;
+import vn.com.vndirect.exchangesimulator.validator.SessionValidator;
+import vn.com.vndirect.exchangesimulator.validator.exception.ValidateException;
 
 public class CancelOrderProcessor implements Processor {
 	private final static Logger LOG = Logger.getLogger(CancelOrderProcessor.class);
 	private Storage<NewOrderSingle> storage;
 	private Matcher matcher;
-	public CancelOrderProcessor(Storage<NewOrderSingle> orderStorage, Matcher matcher) {
+	private NewOrderSingleValidator validator;
+
+	public CancelOrderProcessor(Storage<NewOrderSingle> orderStorage, Matcher matcher,
+			NewOrderSingleValidator validator) {
 		this.storage = orderStorage;
 		this.matcher = matcher;
+		this.validator = validator;
 	}
 
 	@Override
 	public List<ExecutionReport> process(HnxMessage message) {
-		OrderCancelRequest request = (OrderCancelRequest)message;
+		OrderCancelRequest request = (OrderCancelRequest) message;
 		ExecutionReport report = cancelOrder(request);
 		removeOrder(request);
 		return Collections.singletonList(report);
 	}
-	
+
 	private void removeOrder(OrderCancelRequest request) {
 		storage.remove(request.getOrigClOrdID());
 	}
@@ -39,14 +45,31 @@ public class CancelOrderProcessor implements Processor {
 	private ExecutionReport cancelOrder(OrderCancelRequest request) {
 		String originClOrdId = request.getOrigClOrdID();
 		NewOrderSingle newOrderSingle = storage.get(originClOrdId);
-		if (newOrderSingle == null || newOrderSingle.getOrderQty() == 0) {
-			LOG.error("Root order does not exist for request: " + request);
-			return buildRejectReport(request, newOrderSingle).get(0);
-		}
 		
-		ExecutionReport executionReport = buildCanceledExecutionReport(request, newOrderSingle);
-		matcher.cancelOrder(newOrderSingle);
-		return executionReport;
+		try {
+			if (newOrderSingle == null) throw new ValidateException("Order not found");
+			validate(request, newOrderSingle);
+			ExecutionReport executionReport = buildCanceledExecutionReport(request, newOrderSingle);
+			matcher.cancelOrder(newOrderSingle);
+			return executionReport;
+		} catch (ValidateException e) {
+			return buildRejectReport(request, newOrderSingle, e.getCode()).get(0);
+		}
+	}
+
+	protected void validate(OrderCancelRequest request, NewOrderSingle newOrderSingle)
+			throws ValidateException {
+		if (newOrderSingle == null || newOrderSingle.getOrderQty() == 0) {
+			LOG.error("Order is not existed or fill: " + request);
+			throw new ValidateException("Order is not existed or fill");
+		}
+		validateCancelRequest(request, newOrderSingle);
+	}
+	
+	protected void validateCancelRequest(OrderCancelRequest request, NewOrderSingle newOrderSingle)
+			throws ValidateException {
+		SessionValidator sessionValidator = validator.getSessionValidator();
+		sessionValidator.validate(request);
 	}
 
 	private ExecutionReport buildCanceledExecutionReport(OrderCancelRequest request, NewOrderSingle newOrderSingle) {
@@ -54,7 +77,7 @@ public class CancelOrderProcessor implements Processor {
 		executionReport.setTargetCompID(newOrderSingle.getSenderCompID());
 		executionReport.setExecType(ExecType.CANCEL);
 		executionReport.setOrdStatus(OrdStatus.CANCELORREPLACE);
-		executionReport.setOrderID('f'+ newOrderSingle.getOrderId());
+		executionReport.setOrderID('f' + newOrderSingle.getOrderId());
 		executionReport.setLeavesQty(newOrderSingle.getOrderQty());
 		executionReport.setClOrdID(request.getClOrdID());
 		executionReport.setOrigClOrdID(request.getOrigClOrdID());
@@ -65,8 +88,9 @@ public class CancelOrderProcessor implements Processor {
 		executionReport.setPrice(newOrderSingle.getPrice());
 		return executionReport;
 	}
-	
-	private List<ExecutionReport> buildRejectReport(OrderCancelRequest request, NewOrderSingle originOrder) {
+
+	private List<ExecutionReport> buildRejectReport(OrderCancelRequest request, NewOrderSingle originOrder,
+			String text) {
 		ExecutionReport executionReport = new ExecutionReport();
 		executionReport.setTargetCompID(request.getSenderCompID());
 		executionReport.setClOrdID(request.getClOrdID());
@@ -77,21 +101,18 @@ public class CancelOrderProcessor implements Processor {
 		executionReport.setOrdRejReason("5");
 		executionReport.setOrdStatus(OrdStatus.REJECT);
 		executionReport.setOrderID(request.getClOrdID());
-		if (originOrder == null || originOrder.getOrderQty() == 0) {
-			executionReport.setText("order is not existed or filled");
-			executionReport.setSessionRejectReason(ValidateCode.UNKNOWN_ORDER.code());
-		} else {
+		if (originOrder != null && originOrder.getOrderQty() > 0) {
 			executionReport.setOrdType(originOrder.getOrdType());
 			executionReport.setSide(originOrder.getSide());
 			executionReport.setOrdType(originOrder.getOrdType());
 			executionReport.setSide(originOrder.getSide());
-			executionReport.setSessionRejectReason("Invalid order");
-			executionReport.setText("order is rejected");
 		}
+		executionReport.setSessionRejectReason("Invalid order");
+		executionReport.setText("order is rejected: " + text);
 		executionReport.setRefMsgType(request.getMsgType());
 		executionReport.setUnderlyingLastQty(0);
 
 		return Collections.singletonList(executionReport);
-	}	
+	}
 
 }

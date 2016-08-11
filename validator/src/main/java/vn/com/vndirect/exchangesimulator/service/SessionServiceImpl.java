@@ -15,20 +15,42 @@ public class SessionServiceImpl implements SessionService {
 	
 	@Override
 	public boolean isLO() {
-		TradingSessionStatus currTradingSessionStatus = tradingSessionStatusManager.getCurrentSession();
-		return TradSesStatus.LO == currTradingSessionStatus.getTradingSessionCode() ? true : false;
+		return checkSession(TradSesStatus.LO);
 	}
 
 	@Override
 	public boolean isATC1() {
-		TradingSessionStatus currTradingSessionStatus = tradingSessionStatusManager.getCurrentSession();
-		return TradSesStatus.ATC1 == currTradingSessionStatus.getTradingSessionCode() ? true : false;
+		return checkSession(TradSesStatus.ATC1);
 	}
 
 	@Override
 	public boolean isATC2() {
+		return checkSession(TradSesStatus.ATC2);
+	}
+	
+	@Override
+	public boolean isPT() {
+		return checkSession(TradSesStatus.PTCLOSE);
+	}
+
+	@Override
+	public boolean isPreopen() {
+		return checkSession(TradSesStatus.PREOPEN);
+	}
+
+	@Override
+	public boolean isClose() {
+		return checkSession(TradSesStatus.ENDOFDAY);
+	}
+
+	@Override
+	public boolean isIntermission() {
+		return checkSession(TradSesStatus.INTERMISSION);
+	}
+	
+	private boolean checkSession(TradSesStatus status) {
 		TradingSessionStatus currTradingSessionStatus = tradingSessionStatusManager.getCurrentSession();
-		return TradSesStatus.ATC2 == currTradingSessionStatus.getTradingSessionCode() ? true : false;
+		return status == currTradingSessionStatus.getTradingSessionCode();
 	}
 
 }

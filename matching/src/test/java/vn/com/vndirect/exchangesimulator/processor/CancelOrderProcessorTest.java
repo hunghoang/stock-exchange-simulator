@@ -12,6 +12,8 @@ import vn.com.vndirect.exchangesimulator.matching.Matcher;
 import vn.com.vndirect.exchangesimulator.model.ExecutionReport;
 import vn.com.vndirect.exchangesimulator.model.NewOrderSingle;
 import vn.com.vndirect.exchangesimulator.model.OrderCancelRequest;
+import vn.com.vndirect.exchangesimulator.validator.NewOrderSingleValidator;
+import vn.com.vndirect.exchangesimulator.validator.NewOrderSingleValidatorImpl;
 
 public class CancelOrderProcessorTest {
 
@@ -37,7 +39,11 @@ public class CancelOrderProcessorTest {
 	public void setUp() {
 		storage = new OrderStorage();
 		matcher = Mockito.mock(Matcher.class);
-		cancelOrderProcessor = new CancelOrderProcessor(storage, matcher);
+		matcher = Mockito.mock(Matcher.class);
+		NewOrderSingleValidator validator = Mockito.mock(NewOrderSingleValidator.class);
+		cancelOrderProcessor = new CancelOrderProcessor(storage, matcher, validator) {
+			protected void validateCancelRequest(OrderCancelRequest request, NewOrderSingle newOrderSingle) throws vn.com.vndirect.exchangesimulator.validator.exception.ValidateException {};
+		};
 	}
 
 	@Test
@@ -103,6 +109,7 @@ public class CancelOrderProcessorTest {
 		Assert.assertEquals('4', report.getExecType());
 		Assert.assertEquals(order.getOrderQty(), report.getLeavesQty());
 		Assert.assertEquals(order.getSymbol(), report.getSymbol());
+		
 		Assert.assertEquals(order.getSide(), report.getSide());
 		Assert.assertEquals(order.getOrdType(), report.getOrdType());
 		Assert.assertEquals(order.getPrice(), report.getPrice(), 0.0);
@@ -123,6 +130,7 @@ public class CancelOrderProcessorTest {
 	private OrderCancelRequest createCancelRequest() {
 		OrderCancelRequest request = new OrderCancelRequest();
 		request.setMsgSeqNum(1);
+		request.setSenderCompID("VND");
 		request.setClOrdID("orderid");
 		request.setOrigClOrdID("orderid");
 		request.setSymbol("VND");

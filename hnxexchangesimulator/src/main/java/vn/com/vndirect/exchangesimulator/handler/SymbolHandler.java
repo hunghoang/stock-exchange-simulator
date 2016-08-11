@@ -43,7 +43,7 @@ public class SymbolHandler implements QueueListener {
 		this.queueOut = queueOut;
 		Storage<NewOrderSingle> orderStorage = StorageFactory.getStore(symbol);
 		
-		this.cancelOrderProcessor = new CancelOrderProcessor(orderStorage, matcher); 
+		this.cancelOrderProcessor = new CancelOrderProcessor(orderStorage, matcher, validator); 
 		this.orderProcessor = new NewOrderProcessor(orderStorage, matcher);
 		this.replaceOrderProcessor = new ReplaceOrderProcessor(orderStorage, matcher, validator);
 		this.pendingNewOrderProcessor = new PendingNewOrderProcessor(orderStorage, validator);

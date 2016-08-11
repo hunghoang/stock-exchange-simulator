@@ -61,19 +61,6 @@ public class SessionValidatorTest {
 	}
 
 	@Test
-	public void testValidatePlaceOrderDuringOtherSessions() {
-		when(sessionService.isLO()).thenReturn(false);
-		when(sessionService.isATC1()).thenReturn(false);
-		when(sessionService.isATC2()).thenReturn(false);
-		try {
-			validator.validate(order);
-			fail("Must throw exception");
-		} catch (ValidateException e) {
-			assertEquals(ValidateCode.INVALID_SESSION.code(), e.getCode());
-		}
-	}
-
-	@Test
 	public void testRejectATCOrderInLOSession() {
 		when(sessionService.isLO()).thenReturn(true);
 		order.setOrdType(OrderType.ATC.orderType());
@@ -84,7 +71,7 @@ public class SessionValidatorTest {
 			assertEquals(ValidateCode.INVALID_SESSION.code(), e.getCode());
 		}
 	}
-	
+
 	@Test
 	public void testInLast5minsATC() throws ValidateException {
 		when(sessionService.isLO()).thenReturn(false);
@@ -99,25 +86,39 @@ public class SessionValidatorTest {
 		when(sessionService.isLO()).thenReturn(true);
 		when(sessionService.isATC1()).thenReturn(false);
 		when(sessionService.isATC2()).thenReturn(false);
-		
+
 		validator.validate(cancelRequest);
 	}
-	
+
 	@Test
 	public void testShouldAcceptCancelRequestInATCPhase1Session() throws ValidateException {
 		when(sessionService.isLO()).thenReturn(false);
 		when(sessionService.isATC1()).thenReturn(true);
 		when(sessionService.isATC2()).thenReturn(false);
-		
+
 		validator.validate(cancelRequest);
 	}
-	
+
 	@Test
-	public void testShouldRejectCancelRequestInATCPhase2Session() {
+	public void testShouldAcceptCancelRequestInATCPhase2Session() throws ValidateException {
 		when(sessionService.isLO()).thenReturn(false);
 		when(sessionService.isATC1()).thenReturn(false);
 		when(sessionService.isATC2()).thenReturn(true);
-		
+		validator.validate(cancelRequest);
+	}
+
+	@Test
+	public void testShouldAcceptCancelRequestInPutthroughSession() throws ValidateException {
+		when(sessionService.isLO()).thenReturn(false);
+		when(sessionService.isATC1()).thenReturn(false);
+		when(sessionService.isATC2()).thenReturn(false);
+		when(sessionService.isPT()).thenReturn(true);
+		validator.validate(cancelRequest);
+	}
+
+	@Test
+	public void testShouldRejectCancelRequestInPreopenSession() {
+		when(sessionService.isPreopen()).thenReturn(true);
 		try {
 			validator.validate(cancelRequest);
 			fail("Must throw exception");
@@ -125,13 +126,21 @@ public class SessionValidatorTest {
 			assertEquals(ValidateCode.INVALID_SESSION_CANCEL_ORDER.code(), e.getCode());
 		}
 	}
-	
+
 	@Test
-	public void testShouldRejectCancelRequestInOtherSession() {
-		when(sessionService.isLO()).thenReturn(false);
-		when(sessionService.isATC1()).thenReturn(false);
-		when(sessionService.isATC2()).thenReturn(false);
-		
+	public void testShouldRejectCancelRequestInIntermissionSession() {
+		when(sessionService.isIntermission()).thenReturn(true);
+		try {
+			validator.validate(cancelRequest);
+			fail("Must throw exception");
+		} catch (ValidateException e) {
+			assertEquals(ValidateCode.INVALID_SESSION_CANCEL_ORDER.code(), e.getCode());
+		}
+	}
+
+	@Test
+	public void testShouldRejectCancelRequestInCloseSession() {
+		when(sessionService.isClose()).thenReturn(true);
 		try {
 			validator.validate(cancelRequest);
 			fail("Must throw exception");
@@ -145,25 +154,25 @@ public class SessionValidatorTest {
 		when(sessionService.isLO()).thenReturn(true);
 		when(sessionService.isATC1()).thenReturn(false);
 		when(sessionService.isATC2()).thenReturn(false);
-		
+
 		validator.validate(replaceRequest, OrderType.LO.orderType());
 	}
-	
+
 	@Test
 	public void testShouldAcceptLOReplaceRequestInATCPhase1Session() throws ValidateException {
 		when(sessionService.isLO()).thenReturn(false);
 		when(sessionService.isATC1()).thenReturn(true);
 		when(sessionService.isATC2()).thenReturn(false);
-		
+
 		validator.validate(replaceRequest, OrderType.LO.orderType());
 	}
 
 	@Test
-	public void testShouldRejectATCReplaceRequestInATCPhase1Session(){
+	public void testShouldRejectATCReplaceRequestInATCPhase1Session() {
 		when(sessionService.isLO()).thenReturn(false);
 		when(sessionService.isATC1()).thenReturn(true);
 		when(sessionService.isATC2()).thenReturn(false);
-		
+
 		try {
 			validator.validate(replaceRequest, OrderType.ATC.orderType());
 			fail("Must throw exception");
@@ -171,13 +180,18 @@ public class SessionValidatorTest {
 			assertEquals(ValidateCode.CANCEL_REPLACE_NOT_SUPPORTED.code(), e.getCode());
 		}
 	}
-	
+
 	@Test
-	public void testShouldRejectLOReplaceRequestInATCPhase2Session() {
+	public void testShouldAcceptLOReplaceRequestInATCPhase2Session() throws ValidateException {
 		when(sessionService.isLO()).thenReturn(false);
 		when(sessionService.isATC1()).thenReturn(false);
 		when(sessionService.isATC2()).thenReturn(true);
-		
+		validator.validate(replaceRequest, OrderType.LO.orderType());
+	}
+
+	@Test
+	public void testShouldRejectReplaceRequestInPreopenSession() {
+		when(sessionService.isPreopen()).thenReturn(true);
 		try {
 			validator.validate(replaceRequest, OrderType.LO.orderType());
 			fail("Must throw exception");
@@ -187,11 +201,19 @@ public class SessionValidatorTest {
 	}
 
 	@Test
-	public void testShouldRejectReplaceRequestInOtherSession() {
-		when(sessionService.isLO()).thenReturn(false);
-		when(sessionService.isATC1()).thenReturn(false);
-		when(sessionService.isATC2()).thenReturn(false);
-		
+	public void testShouldRejectReplaceRequestInIntermissionSession() {
+		when(sessionService.isIntermission()).thenReturn(true);
+		try {
+			validator.validate(replaceRequest, OrderType.LO.orderType());
+			fail("Must throw exception");
+		} catch (ValidateException e) {
+			assertEquals(ValidateCode.INVALID_SESSION_REPLACE_ORDER.code(), e.getCode());
+		}
+	}
+
+	@Test
+	public void testShouldRejectReplaceRequestInCloseSession() {
+		when(sessionService.isClose()).thenReturn(true);
 		try {
 			validator.validate(replaceRequest, OrderType.LO.orderType());
 			fail("Must throw exception");

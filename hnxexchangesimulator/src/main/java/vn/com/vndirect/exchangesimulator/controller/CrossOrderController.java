@@ -77,7 +77,7 @@ public class CrossOrderController implements QueueListener {
 				acceptTwoFirm(((NewOrderCross) order).getCrossID());
 			} else if (rejectOrder((NewOrderCross) order)) {
 				updateOrderCross((NewOrderCross) order);
-				rejectTwoFirm(((NewOrderCross) order).getCrossID());
+				rejectTwoFirm((NewOrderCross) order);
 			}
 		} else if (CrossOrderCancelRequest.class.isInstance(order)) {
 			orderStorageService
@@ -407,28 +407,29 @@ public class CrossOrderController implements QueueListener {
 		acceptCancelOneFirm(orderId);
 	}
 
-	public void rejectTwoFirm(String orderId) {
-		NewOrderCross cross = orderStorageService.getOrderCross(orderId);
-		if (cross == null) {
+	public void rejectTwoFirm(NewOrderCross order) {
+		String orderId = order.getCrossID();
+		NewOrderCross originCrossOrder = orderStorageService.getOrderCross(orderId);
+		if (originCrossOrder == null) {
 			LOGGER.error("No NewOrderCross found for: " + orderId);
 			return;
 		}
-		cross.setCurrentStatus("CANCEL");
+		originCrossOrder.setCurrentStatus("CANCEL");
 		ExecutionReport report = new ExecutionReport();
 
-		String targetCompId = getTargetCompIdToReply(cross);
+		String targetCompId = getTargetCompIdToReply(originCrossOrder);
 		report.setTargetCompID(targetCompId);
-		report.setAccount(cross.getGroupSides().get(0).getAccount());
-		report.setOrderID(cross.getCrossID());
-		report.setClOrdID(cross.getCrossID());
-		report.setOrigClOrdID(cross.getCrossID());
+		report.setAccount(order.getGroupSides().get(1).getAccount());
+		report.setOrderID(originCrossOrder.getCrossID());
+		report.setClOrdID(originCrossOrder.getCrossID());
+		report.setOrigClOrdID(originCrossOrder.getCrossID());
 		report.setExecType(ExecType.CANCEL);
 		report.setOrdStatus(OrdStatus.CANCELORREPLACE);
 		report.setOrdType('P');
-		report.setSymbol(cross.getSymbol());
+		report.setSymbol(originCrossOrder.getSymbol());
 		report.setSide('8');
-		report.setPrice(cross.getPrice());
-		report.setLeavesQty(cross.getGroupSides().get(0).getOrderQty());
+		report.setPrice(originCrossOrder.getPrice());
+		report.setLeavesQty(originCrossOrder.getGroupSides().get(0).getOrderQty());
 		response(report);
 	}
 

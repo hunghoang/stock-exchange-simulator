@@ -32,8 +32,7 @@ public class SessionValidatorImpl implements SessionValidator {
 
 	@Override
 	public void validate(NewOrderSingle order) throws ValidateException {
-		if (!sessionService.isLO() && !sessionService.isATC1()
-				&& !sessionService.isATC2()) {
+		if (!sessionIsOpen()) {
 			throw new ValidateException(ValidateCode.INVALID_SESSION.code(),
 					ValidateCode.INVALID_SESSION.message());
 		}
@@ -48,11 +47,15 @@ public class SessionValidatorImpl implements SessionValidator {
 
 	@Override
 	public void validate(OrderCancelRequest request) throws ValidateException {
-		if (!sessionService.isLO() && !sessionService.isATC1()) {
+		if (!sessionIsOpen()) {
 			throw new ValidateException(
 					ValidateCode.INVALID_SESSION_CANCEL_ORDER.code(),
 					ValidateCode.INVALID_SESSION_CANCEL_ORDER.message());
 		}
+	}
+	
+	private boolean sessionIsOpen() throws ValidateException {
+		return !(sessionService.isPreopen() || sessionService.isIntermission() || sessionService.isClose());
 	}
 
 	@Override
@@ -60,8 +63,7 @@ public class SessionValidatorImpl implements SessionValidator {
 		if(OrderType.ATC.orderType() == origOrderType) {
 			throw new ValidateException(ValidateCode.CANCEL_REPLACE_NOT_SUPPORTED.code(), ValidateCode.CANCEL_REPLACE_NOT_SUPPORTED.message());
 		}
-		
-		if (!sessionService.isLO() && !sessionService.isATC1()) {
+		if (!sessionIsOpen()) {
 			throw new ValidateException(ValidateCode.INVALID_SESSION_REPLACE_ORDER.code(),
 					ValidateCode.INVALID_SESSION_REPLACE_ORDER.message());
 		}

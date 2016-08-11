@@ -7,8 +7,8 @@ public class TradingSessionStatus extends HnxMessage {
 	private Boolean possDupFlag;
 	private String tradSesReqID;
 	private String tradingSessionID;
-	private Integer tradSesMode;
-	private Integer tradSesStatus;
+	private int tradSesMode;
+	private int tradSesStatus;
 	private Date tradSesStartTime;
 	
 	public TradingSessionStatus() {

@@ -154,14 +154,14 @@ public class CrossOrderControllerTest {
 	public void testSendRejectFromBuyerWith2FirmOrder() {
 		NewOrderCross order = create2FirmOrder();
 		orderController.onEvent(order);
-		orderController.rejectTwoFirm(order.getCrossID());
+		orderController.rejectTwoFirm(order);
 		ExecutionReport report = (ExecutionReport) responses.get(0);
 		Assert.assertEquals(order.getSenderCompID(), report.getTargetCompID());
 		verifyReject(order, report);
 	}
 
 	private void verifyReject(NewOrderCross order, ExecutionReport report) {
-		Assert.assertEquals(order.getGroupSides().get(0).getAccount(), report.getAccount());
+		Assert.assertEquals(order.getGroupSides().get(1).getAccount(), report.getAccount());
 		Assert.assertEquals(order.getCrossID(), report.getOrderID());
 		Assert.assertEquals(order.getCrossID(), report.getClOrdID());
 		Assert.assertEquals(order.getCrossID(), report.getOrigClOrdID());

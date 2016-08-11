@@ -36,6 +36,7 @@ import vn.com.vndirect.lib.commonlib.file.FileUtils;
 @Component
 public class MonitorRouteBuilder extends RouteBuilder {
 	private static final String MONITOR_LINK = "http://0.0.0.0:9005/exchange-simulator/monitor";
+	private static final String SESSION_LINK = "http://0.0.0.0:9005/exchange-simulator/session";
 	private static final String UPDATE_PRICE_LINK = "http://0.0.0.0:9005/exchange-simulator/updatePrice";
 	private static final String MANUAL_MATCHING_LINK = "http://0.0.0.0:9005/exchange-simulator/manualMatching";
 	private static final String ORDER_MANAGER_LINK = "http://0.0.0.0:9005/exchange-simulator/orderManager";
@@ -45,7 +46,7 @@ public class MonitorRouteBuilder extends RouteBuilder {
 	private static final String CREATE_CROSS_ORDER_ACTION_LINK = "http://0.0.0.0:9005/exchange-simulator/crossOrders-fakedseller-create";
 	private static final String CROSS_ORDER_ACTION_LINK = "http://0.0.0.0:9005/exchange-simulator/crossOrderAction";
 	private static final String CROSS_ORDER_SCREEN_LINK = "http://0.0.0.0:9005/exchange-simulator/crossOrderManual";
-	private static final String ALL_ORDER_LINK = "http://0.0.0.0:9005/exchange-simulator/allOrder";
+	private static final String ALL_ORDER_LINK = "http://0.0.0.0:9005/exchange-simulator/orders";
 	private static final String SET_PRICE_LINK = "http://0.0.0.0:9005/exchange-simulator/price";
 
 	private static final Logger LOGGER = Logger
@@ -248,18 +249,22 @@ public class MonitorRouteBuilder extends RouteBuilder {
 					@Override
 					public void process(Exchange exc) throws Exception {
 						String method = exc.getIn().getHeader(Exchange.HTTP_METHOD).toString();
-						String symbol = exc.getIn().getHeader("symbol", String.class);
+						String symbol = exc.getIn().getHeader("code", String.class);
 						Long ceiling = exc.getIn().getHeader("ceiling", Long.class);
 						Long floor = exc.getIn().getHeader("floor", Long.class);
 						if (method == "POST") {
 							securityService.setSecurityBySymbol(symbol, ceiling, floor);
 						}
 						SecurityStatus securityStatus = securityService.getSecurityBySymbol(symbol);
+						
 						exc.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
-						exc.getOut().setHeader(Exchange.CONTENT_TYPE,
-								"application/json; charset=utf-8");
-						String json = String.format("{\"symbol\":\"%s\",\"ceil\":\"%d\",\"floor\":\"%d\"}", securityStatus.getSymbol(), securityStatus.getHighPx(), securityStatus.getLowPx());
-						exc.getOut().setBody(json);
+						exc.getOut().setHeader(Exchange.CONTENT_TYPE, "application/json; charset=utf-8");
+						if (securityStatus != null) {
+							String json = String.format("{\"code\":\"%s\",\"ceiling\":\"%f\",\"floor\":\"%f\"}", securityStatus.getSymbol(), securityStatus.getHighPx(), securityStatus.getLowPx());
+							exc.getOut().setBody(json);
+						} else {
+							exc.getOut().setBody("{\"error\":\"Code " + symbol + " is not set\"}");
+						}
 					}
 					
 				});
@@ -298,7 +303,20 @@ public class MonitorRouteBuilder extends RouteBuilder {
 				exc.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 				exc.getOut().setBody(monitorService.buildMonitorContent());
 			}
-
+		});
+	
+		from("jetty:" + SESSION_LINK).process(new Processor() {
+			@Override
+			public void process(Exchange exc) throws Exception {
+				Object session = exc.getIn().getHeader("session");
+				if (session != null && !session.toString().isEmpty()) {
+					sessionManager.setSession(session.toString());
+				}
+				exc.getOut().setHeader(Exchange.CONTENT_TYPE, "application/json");
+				exc.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+				exc.getOut().setBody("{\"session\":\"" + sessionManager.getCurrentSession() + "\"}");
+			}
+			
 		});
 
 		from("jetty:" + UPDATE_PRICE_LINK).process(new Processor() {

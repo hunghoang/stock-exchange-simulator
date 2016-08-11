@@ -107,8 +107,8 @@ public class TradingSessionStatusController {
 				queueOutService.add(tradingSessionStatus);
 				if (tradingSessionStatus.getTradingSessionCode() == TradSesStatus.LO || tradingSessionStatus.getTradingSessionCode() == TradSesStatus.ENDOFDAY) {
 					TradingSessionStatus tradingSessionStatusUpcom = new TradingSessionStatus();
+					tradingSessionStatusUpcom.setTargetCompID(socketClient.getUserId());
 					tradingSessionStatusUpcom.setText(tradingSessionStatus.getText());
-					tradingSessionStatusUpcom.setPossDupFlag(tradingSessionStatus.isPossDupFlag());
 					tradingSessionStatusUpcom.setTradSesReqID(tradingSessionStatus.getTradSesReqID().replace("LIS", "UPC"));
 					tradingSessionStatusUpcom.setTradingSessionID(tradingSessionStatus.getTradingSessionID().replace("LIS", "UPC"));
 					tradingSessionStatusUpcom.setTradSesMode(tradingSessionStatus.getTradSesMode());

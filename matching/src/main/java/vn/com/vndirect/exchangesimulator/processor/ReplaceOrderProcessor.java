@@ -14,6 +14,7 @@ import vn.com.vndirect.exchangesimulator.model.OrdStatus;
 import vn.com.vndirect.exchangesimulator.model.OrderReplaceRequest;
 import vn.com.vndirect.exchangesimulator.validator.NewOrderSingleValidator;
 import vn.com.vndirect.exchangesimulator.validator.PriceValidator;
+import vn.com.vndirect.exchangesimulator.validator.SessionValidator;
 import vn.com.vndirect.exchangesimulator.validator.exception.ValidateCode;
 import vn.com.vndirect.exchangesimulator.validator.exception.ValidateException;
 
@@ -52,7 +53,7 @@ public class ReplaceOrderProcessor implements Processor {
 			NewOrderSingle newOrder = generateNewOrder(request, origOrder);
 			removeOldOrder(origOrder);
 			storage.add(newOrder);
-			report.setOrderID(newOrder.getOrderId());
+			report.setOrderID(newOrder.getOrderId() + 1);
 			reports.addAll(matcher.push(newOrder));
 		} else {
 			updateNewQuantity(request, origOrder);
@@ -159,7 +160,7 @@ public class ReplaceOrderProcessor implements Processor {
 		return Collections.singletonList(report);
 	}
 
-	private boolean validate(OrderReplaceRequest request,
+	protected boolean validate(OrderReplaceRequest request,
 			NewOrderSingle origOrder) throws ValidateException {
 		if (origOrder == null || origOrder.getOrderQty() == 0) {
 			return false;
@@ -169,8 +170,15 @@ public class ReplaceOrderProcessor implements Processor {
 			throw new ValidateException(ValidateCode.INVALID_QUANTITY.code(), ValidateCode.INVALID_QUANTITY.message());
 		}
 		
+		return validateRules(request, origOrder);
+	}
+	
+	protected boolean validateRules(OrderReplaceRequest request,
+			NewOrderSingle origOrder) throws ValidateException {
 		PriceValidator priceValidator = validator.getPriceValidator();
+		SessionValidator sessionValidator = validator.getSessionValidator();
 		priceValidator.validate(request.getSymbol(), request.getPrice());
+		sessionValidator.validate(request, origOrder.getOrdType());
 		return true;
 	}
 

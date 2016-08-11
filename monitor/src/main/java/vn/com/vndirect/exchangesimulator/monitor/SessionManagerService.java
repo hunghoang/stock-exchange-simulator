@@ -56,11 +56,12 @@ public class SessionManagerService {
 
 	protected TradingSessionStatus getSession(String session) {
 		TradingSessionStatus tradingSessionStatus = new TradingSessionStatus();
-		switch (session) {
+		switch (session.toLowerCase()) {
 		case "preopen":
 			tradingSessionStatus = tradingSessionStatusManager
 					.getPreOpenSession();
 			break;
+		case "open":
 		case "open1":
 			tradingSessionStatus = tradingSessionStatusManager
 					.getOpen1Session();

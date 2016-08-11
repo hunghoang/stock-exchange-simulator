@@ -24,13 +24,23 @@ public class ATCSessionAllOrderMatcher {
 	public void push(NewOrderSingle order){
 		String  symbol = order.getSymbol();
 		if (!matcherMap.containsKey(symbol)){
-			SecurityStatus securityStatus = (SecurityStatus) memory.get("securitystatus", symbol);
-			int floorPrice = (int) Math.floor(securityStatus.getLowPx());
-			int ceilingPrice = (int) Math.floor(securityStatus.getHighPx());
+			int floorPrice = getFloor(symbol);
+			int ceilingPrice = getCeil(symbol);
 			PriceRange range = new PriceRange(floorPrice, ceilingPrice, 100);
 			matcherMap.put(symbol, new ATCSessionMatcher(range, symbol));
 		}
 		matcherMap.get(symbol).push(order);
+	}
+	
+	protected int getFloor(String symbol){
+		SecurityStatus securityStatus = (SecurityStatus) memory.get("securitystatus", symbol);
+		if (securityStatus == null) return 100;
+		return (int) Math.floor(securityStatus.getLowPx());	}
+	
+	protected int getCeil(String symbol){
+		SecurityStatus securityStatus = (SecurityStatus) memory.get("securitystatus", symbol);		
+		if (securityStatus == null) return 500000;
+		return (int) Math.floor(securityStatus.getHighPx());
 	}
 
 	public void clear(){
